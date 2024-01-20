@@ -4,6 +4,7 @@
 #include "ext.hpp"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 #include <vector>
 #include "Shader_Loader.h"
@@ -26,6 +27,8 @@ namespace texture {
 	GLuint skybox;
 	GLuint grid;
 	GLuint sun;
+	GLuint asteroid;
+	GLuint metal;
 
 	GLuint earthNormal;
 	GLuint asteroidNormal;
@@ -45,8 +48,10 @@ Core::Shader_Loader shaderLoader;
 Core::RenderContext shipContext;
 Core::RenderContext sphereContext;
 Core::RenderContext cubemapContext;
+Core::RenderContext asteroidContext;
+Core::RenderContext metalContext;
 
-glm::vec3 cameraPos = glm::vec3(-4.f, 0, 0);
+glm::vec3 cameraPos = glm::vec3(-8.f, 0, 0);
 glm::vec3 cameraDir = glm::vec3(1.f, 0.f, 0.f);
 glm::vec3 lightColor = glm::vec3(0.9, 0.7, 0.8) * 100;
 
@@ -61,6 +66,10 @@ GLuint VAO,VBO;
 
 float aspectRatio = 1.f;
 float totalMoney = 0;
+float lastResetedAsteroidTime = glfwGetTime();
+float lastSpawnedAsteroidTime = glfwGetTime();
+float lastTryMetalSpawnTime = glfwGetTime();
+float health = 10;
 
 std::vector<std::pair<std::string, glm::mat4>> objectData;
 
@@ -201,7 +210,6 @@ public:
 		if (distanceToPlayer < collectionRadius) {
 			if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
 				totalMoney += moneyToCollect;
-				printf("deltaTime - time: %f, ", time - timeDelta);
 				timeDelta = time;
 				printf("collected money for %s: %f\n", name.c_str(), moneyToCollect);
 				printf("total money %f\n", totalMoney);
@@ -246,14 +254,112 @@ private:
 	}
 };
 
+class Asteroid {
+public:
+	glm::vec3 position;
+	glm::mat4 modelMatrix;
+	GLuint textureID;
+	glm::vec3 direction;
+	float speed;
+	float timeSpawned;
+	float distanceToPlayer;
 
+	Asteroid() {
+		position = generateRandomPosition();
+		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f)); 
+		textureID = texture::asteroid; 
+		direction = glm::normalize(spaceshipPos - position);
+		speed = 0.002f;
+		timeSpawned = glfwGetTime();
+	}
+
+	void draw() {
+		position += direction * speed;
+		if (glfwGetTime() - timeSpawned > 20.0f && glfwGetTime() - lastResetedAsteroidTime > 5.0f) {
+			position = generateRandomPosition();
+			timeSpawned = glfwGetTime();
+			lastResetedAsteroidTime = timeSpawned;
+		}
+		distanceToPlayer = calculateDistance(spaceshipPos, position);
+
+		if (distanceToPlayer < 0.5f) {
+			position = generateRandomPosition();
+			timeSpawned = glfwGetTime();
+			lastResetedAsteroidTime = timeSpawned;
+			health -= 3;
+			printf("COLLISION! HEALTH: %f\n", health);
+		}
+		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
+		direction = glm::normalize(spaceshipPos - position);
+		drawObjectTexture(asteroidContext, "asteroid", modelMatrix, textureID);
+	}
+
+private:
+	glm::vec3 generateRandomPosition() {
+		float x = spaceshipPos.y + ((rand() % 100) - 50);
+		float z = spaceshipPos.z + ((rand() % 100) - 50);
+		return glm::vec3(x, 0, z);
+	}
+};
+
+class Metal {
+public:
+	glm::vec3 position;
+	glm::mat4 modelMatrix;
+	GLuint textureID;
+	glm::vec3 direction;
+	float speed;
+	float distanceToPlayer;
+	int isCollected = 0;
+
+	Metal() {
+		position = generateRandomPosition();
+		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
+		textureID = texture::metal;
+		direction = glm::normalize(-position);
+		speed = 0.001f;
+	}
+
+	void draw() {
+		if (isCollected == 0) {
+			position += direction * speed;
+			distanceToPlayer = calculateDistance(spaceshipPos, position);
+			if (distanceToPlayer < 0.5f) {
+				health += 1;
+				printf("METAL CAPTURED! HEALTH: %f\n", health);
+				isCollected = 1;
+			}
+			modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
+			drawObjectTexture(metalContext, "metal"// + std::to_string(rand() % 1000000)
+				, modelMatrix, textureID);
+
+			if (isCollected == 0 && (abs(position.x) > 50 || abs(position.z) > 50)) {
+				isCollected = 1;
+			}
+		}
+	}
+
+private:
+	glm::vec3 generateRandomPosition() {
+		float x = spaceshipPos.y + ((rand() % 100) - 50);
+		float z = spaceshipPos.z + ((rand() % 100) - 50);
+		return glm::vec3(x, 0, z);
+	}
+};
+
+std::vector<Asteroid> asteroids;
 std::vector<Planet> planets;
+std::vector<Metal> metals;
 
 void initializePlanetData() {
 	float time = glfwGetTime();
 	planets.push_back(Planet("earth", glm::eulerAngleY(time / 30) * glm::translate(glm::vec3(20.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), texture::earth, 1000, 10));
 	planets.push_back(Planet("venus", glm::eulerAngleY(time / 100) * glm::translate(glm::vec3(50.f, 0, 0)) * glm::scale(glm::vec3(0.25f)), texture::earth, 10000, 100));
 	planets.push_back(Planet("mars", glm::eulerAngleY(time / 15) * glm::translate(glm::vec3(10.f, 0, 0)) * glm::scale(glm::vec3(0.25f)), texture::earth, 2000, 2));
+
+	for (int i = 0; i < 3; ++i) {
+		asteroids.push_back(Asteroid());
+	}
 }
 
 
@@ -263,11 +369,6 @@ void renderScene(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 transformation;
 	float time = glfwGetTime();
-
-	/*drawCubemap(cubemapContext, texture::skybox);*/
-
-
-
 
 	objectData.clear();
 
@@ -293,6 +394,28 @@ void renderScene(GLFWwindow* window)
 	for (Planet& planet : planets) {
 		planet.draw();
 		planet.update(window);
+	}
+	
+	if (glfwGetTime() - lastSpawnedAsteroidTime > 10.0f && asteroids.size() < 20) {
+		asteroids.push_back(Asteroid());
+		lastSpawnedAsteroidTime = glfwGetTime();
+	}
+
+	for (Asteroid& asteroid : asteroids) {
+		asteroid.draw();
+	}
+
+	if (glfwGetTime() - lastTryMetalSpawnTime > 10) {
+		if (rand() % 100 >= 0.97) {
+			metals.push_back(Metal());
+			printf("Metal spawned!");
+		}
+		lastTryMetalSpawnTime = glfwGetTime();
+	}
+
+
+	for (Metal& metal : metals) {
+		metal.draw();
 	}
 
 	glUseProgram(0);
@@ -330,6 +453,8 @@ void init(GLFWwindow* window)
 
 	loadModelToContext("./models/sphere.obj", sphereContext);
 	loadModelToContext("./models/spaceship.obj", shipContext);
+	loadModelToContext("./models/asteroid.obj", asteroidContext);
+	loadModelToContext("./models/metal.obj", metalContext);
 	loadModelToContext("./models/cube.obj", cubemapContext);
 
 
@@ -348,7 +473,8 @@ void init(GLFWwindow* window)
 	texture::earth = Core::LoadTexture("textures/earth.png");
 	texture::ship = Core::LoadTexture("textures/spaceship.jpg");
 	texture::sun = Core::LoadTexture("textures/sun.jpg");
-	texture::moon = Core::LoadTexture("textures/moon.jpg");
+	texture::asteroid = Core::LoadTexture("textures/moon.jpg");
+	texture::metal = Core::LoadTexture("textures/metal.jpg");
 
 
 }
@@ -388,8 +514,6 @@ void processInput(GLFWwindow* window)
 	cameraPos = spaceshipPos - 1.5 * spaceshipDir + glm::vec3(0, 1, 0) * 0.5f;
 	cameraDir = spaceshipDir;
 
-	//cameraDir = glm::normalize(-cameraPos);
-
 }
 
 // funkcja jest glowna petla
@@ -398,7 +522,6 @@ void renderLoop(GLFWwindow* window) {
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
-
 		renderScene(window);
 		glfwPollEvents();
 	}
