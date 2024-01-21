@@ -1,4 +1,4 @@
-#version 430 core
+v c#version 430 core
 
 uniform vec3 objectColor;
 
