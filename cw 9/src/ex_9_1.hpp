@@ -66,18 +66,24 @@ Core::Shader_Loader shaderLoader;
 Core::RenderContext shipContext;
 Core::RenderContext sphereContext;
 
+//slonce galaktyka
 glm::vec3 sunPos = glm::vec3(-4.740971f, 2.149999f, 0.369280f);
 glm::vec3 sunDir = glm::vec3(-0.93633f, 0.351106, 0.003226f);
 glm::vec3 sunColor = glm::vec3(0.9f, 0.9f, 0.7f)*5;
 
+//slonce wyspa
+glm::vec3 secondSunPos = glm::vec3(1000.95, 4.45952, 998.212);
+glm::vec3 secondSunColor = glm::vec3(0.8f, 0.6f, 0.2f);
+
+//camera
 glm::vec3 cameraPos = glm::vec3(0.479490f, 1.250000f, -2.124680f);
 glm::vec3 cameraDir = glm::vec3(-0.354510f, 0.000000f, 0.935054f);
 
-
+//statek
 glm::vec3 spaceshipPos = glm::vec3(0.065808f, 1.250000f, -2.189549f);
 glm::vec3 spaceshipDir = glm::vec3(-0.490263f, 0.000000f, 0.871578f);
 GLuint VAO,VBO;
-unsigned int skyboxVAO, skyboxVBO, cubemapTexture;
+unsigned int skyboxVAO, skyboxVBO, cubemapTexture, secondCubemapTexture;
 
 float aspectRatio = 1.f;
 
@@ -95,6 +101,7 @@ float spotlightPhi = 3.14 / 4;
 
 float lastTime = -1.f;
 float deltaTime = 0.f;
+int isIsland = 0;
 
 void updateDeltaTime(float time) {
 	if (lastTime < 0) {
@@ -189,6 +196,7 @@ void renderShadowapSun() {
 	glViewport(0, 0, WIDTH, HEIGHT);
 }
 
+
 unsigned int createCubemap()
 {
 	unsigned int textureID;
@@ -211,8 +219,31 @@ unsigned int createCubemap()
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	return textureID;
 }
+unsigned int createSecondCubemap()
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	std::vector<std::string> faces = getSecondCubemapFaces();
+	int width, height, nrChannels;
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+		);
+		stbi_image_free(data);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	return textureID;
+}
 
-void createSkybox() {
+void createSkybox()
+{
 	glGenVertexArrays(1, &skyboxVAO);
 	glGenBuffers(1, &skyboxVBO);
 	glBindVertexArray(skyboxVAO);
@@ -221,12 +252,13 @@ void createSkybox() {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	cubemapTexture = createCubemap();
+	secondCubemapTexture = createSecondCubemap();
 	glUseProgram(skyboxProgram);
 	glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
 }
 
-void renderSkybox() {
-
+void renderSkybox() 
+{
 	glm::mat4 projectionMatrix = createPerspectiveMatrix();
 	glm::mat4 viewMatrix = createCameraMatrix();
 	glDepthFunc(GL_LEQUAL);
@@ -235,7 +267,14 @@ void renderSkybox() {
 	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 	glBindVertexArray(skyboxVAO);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	if (isIsland == 0) {
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+	}
+	else {
+		glBindTexture(GL_TEXTURE_CUBE_MAP, secondCubemapTexture);
+
+	}
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 	glDepthFunc(GL_LESS);
@@ -247,13 +286,14 @@ void renderScene(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	float time = glfwGetTime();
 	updateDeltaTime(time);
-	renderSkybox();
 	renderShadowapSun();
+	renderSkybox();
+	
 
 	//space lamp
 	glUseProgram(programSun);
 	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
-	glm::mat4 transformation = viewProjectionMatrix * glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1));
+	glm::mat4 transformation = viewProjectionMatrix * glm::translate(pointlightPos) * glm::scale(glm::vec3(0.7));
 	glUniformMatrix4fv(glGetUniformLocation(programSun, "transformation"), 1, GL_FALSE, (float*)&transformation);
 	glUniform3f(glGetUniformLocation(programSun, "color"), sunColor.x / 2, sunColor.y / 2, sunColor.z / 2);
 	glUniform1f(glGetUniformLocation(programSun, "exposition"), exposition);
@@ -263,35 +303,50 @@ void renderScene(GLFWwindow* window)
 	glUseProgram(program);
 
 	drawObjectPBR(sphereContext, 
-		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.2)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), 
+		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.7)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), 
 		glm::vec3(0.2, 0.7, 0.3), 0.3, 0.0);
 
 	drawObjectPBR(sphereContext,
-		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.2)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::eulerAngleY(time) * glm::translate(glm::vec3(1.f, 0, 0)) * glm::scale(glm::vec3(0.1f)),
+		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.7)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::eulerAngleY(time) * glm::translate(glm::vec3(1.f, 0, 0)) * glm::scale(glm::vec3(0.1f)),
 		glm::vec3(0.5, 0.5, 0.5), 
 		0.7, 0.0);
 
 	drawObjectPBR(sphereContext,
-		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.7)) * glm::eulerAngleY(time / 5) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.5f)),
+		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.9)) * glm::eulerAngleY(time / 5) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.5f)),
 		glm::vec3(0.7, 0.7, 0.5),
 		0.2, 0.9);
 
+	drawObjectPBR(sphereContext,
+		glm::translate(pointlightPos) * glm::scale(glm::vec3(2.0)) * glm::eulerAngleY(time / 7) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.9f)),
+		glm::vec3(1.0, 0.0, 0.1),
+		0.2, 0.9);
+
+
+	glUseProgram(programSun);
+	glm::mat4 secondViewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
+	glm::mat4 secondSunTransformation = secondViewProjectionMatrix * glm::translate(secondSunPos) * glm::scale(glm::vec3(0.7));
+	glUniformMatrix4fv(glGetUniformLocation(programSun, "transformation"), 1, GL_FALSE, (float*)&secondSunTransformation);
+	glUniform3f(glGetUniformLocation(programSun, "color"), secondSunColor.x, secondSunColor.y, secondSunColor.z);
+	glUniform1f(glGetUniformLocation(programSun, "exposition"), exposition);
+	Core::DrawContext(sphereContext);
 
 	//elementy na planecie 1000x1000 coords
+	glUseProgram(program);
 	drawObjectPBR(models::waterContext,
 		glm::mat4() * glm::translate(glm::vec3(1050.0f, -7.0f, 1050.0f)) * glm::scale(glm::vec3(0.7)),
 		glm::vec3(0.1, 0.1, 0.9),
-		0.2f, 0.2f);
+		0.4f, 0.2f);
 
 	drawObjectPBR(models::groundContext,
-		glm::mat4() * glm::translate(glm::vec3(1000.0f, 0.0f, 1000.0f)) * glm::scale(glm::vec3(0.01)),
+		glm::mat4() * glm::translate(glm::vec3(1000.0f, 0.0f, 1000.0f)) * glm::scale(glm::vec3(0.004)),
 		glm::vec3(0.428691f, 0.08022f, 0.036889f),
-		0.2f, 0.2f);
+		0.9f, 0.0f);
 
 	drawObjectPBR(models::portalContext,
 		glm::mat4() * glm::translate(glm::vec3(1014.0f, 5.0f, 1006.0f)) * glm::scale(glm::vec3(0.5)) * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
 		glm::vec3(0.8, 0.8, 0.8),
 		0.2f, 0.9f);
+
 	drawObjectPBR(models::lanternContext,
 			glm::mat4() * glm::translate(glm::vec3(1001.0f, 0.0f, 998.0f)) * glm::scale(glm::vec3(0.05)),
 			glm::vec3(0.1, 0.2, 0.8),
@@ -430,19 +485,15 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
 		// Teleport spaceship to the sun
 		spaceshipPos = sunPos;
-		// Set the camera position to be slightly above the spaceship
+		
 		cameraPos = sunPos + glm::vec3(0.0f, 0.5f, 0.0f);
-		// Set the camera direction to look at the sun
-		//cameraDir = glm::normalize(sunPos - cameraPos);
+		isIsland = 0;
 	}
 	if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
 	{
 		// Teleport spaceship to a new location
 		spaceshipPos = glm::vec3(1000.0f, 3.0f, 1000.0f);
-
-		// Set the camera position and direction for the new scene
-		//cameraPos = glm::vec3((30.0f, 1.0f, 30.0f));
-		//cameraDir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f));
+		isIsland = 1;
 	}
 
 	//cameraDir = glm::normalize(-cameraPos);
