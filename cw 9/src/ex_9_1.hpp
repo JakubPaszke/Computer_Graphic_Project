@@ -24,20 +24,16 @@ const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 int WIDTH = 500, HEIGHT = 500;
 
 namespace models {
-	Core::RenderContext bedContext;
-	Core::RenderContext chairContext;
-	Core::RenderContext deskContext;
-	Core::RenderContext doorContext;
+	
 	Core::RenderContext drawerContext;
-	Core::RenderContext marbleBustContext;
-	Core::RenderContext materaceContext;
-	Core::RenderContext pencilsContext;
 	Core::RenderContext planeContext;
-	Core::RenderContext roomContext;
 	Core::RenderContext spaceshipContext;
 	Core::RenderContext sphereContext;
-	Core::RenderContext windowContext;
 	Core::RenderContext testContext;
+	Core::RenderContext groundContext;
+	Core::RenderContext portalContext;
+	Core::RenderContext waterContext;
+	Core::RenderContext lanternContext;
 }
 
 namespace texture {
@@ -263,7 +259,7 @@ void renderScene(GLFWwindow* window)
 	glUniform1f(glGetUniformLocation(programSun, "exposition"), exposition);
 	Core::DrawContext(sphereContext);
 
-
+	//planety ukladu
 	glUseProgram(program);
 
 	drawObjectPBR(sphereContext, 
@@ -280,23 +276,28 @@ void renderScene(GLFWwindow* window)
 		glm::vec3(0.7, 0.7, 0.5),
 		0.2, 0.9);
 
-	drawObjectPBR(models::drawerContext,
-		glm::mat4() * glm::translate(glm::vec3(25.0f, 1.0f, 25.0f)),
+
+	//elementy na planecie 1000x1000 coords
+	drawObjectPBR(models::waterContext,
+		glm::mat4() * glm::translate(glm::vec3(1050.0f, -7.0f, 1050.0f)) * glm::scale(glm::vec3(0.7)),
+		glm::vec3(0.1, 0.1, 0.9),
+		0.2f, 0.2f);
+
+	drawObjectPBR(models::groundContext,
+		glm::mat4() * glm::translate(glm::vec3(1000.0f, 0.0f, 1000.0f)) * glm::scale(glm::vec3(0.01)),
 		glm::vec3(0.428691f, 0.08022f, 0.036889f),
 		0.2f, 0.2f);
 
+	drawObjectPBR(models::portalContext,
+		glm::mat4() * glm::translate(glm::vec3(1014.0f, 5.0f, 1006.0f)) * glm::scale(glm::vec3(0.5)) * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
+		glm::vec3(0.8, 0.8, 0.8),
+		0.2f, 0.9f);
+	drawObjectPBR(models::lanternContext,
+			glm::mat4() * glm::translate(glm::vec3(1001.0f, 0.0f, 998.0f)) * glm::scale(glm::vec3(0.05)),
+			glm::vec3(0.1, 0.2, 0.8),
+			0.2f, 0.9f);
 
-	/*drawObjectPBR(models::bedContext, glm::mat4(), glm::vec3(0.03f, 0.03f, 0.03f), 0.2f, 0.0f);
-	drawObjectPBR(models::chairContext, glm::mat4(), glm::vec3(0.195239f, 0.37728f, 0.8f), 0.4f, 0.0f);
-	drawObjectPBR(models::deskContext, glm::mat4(), glm::vec3(0.428691f, 0.08022f, 0.036889f), 0.2f, 0.0f);
-	drawObjectPBR(models::doorContext, glm::mat4(), glm::vec3(0.402978f, 0.120509f, 0.057729f), 0.2f, 0.0f);
-	drawObjectPBR(models::drawerContext, glm::mat4(), glm::vec3(0.428691f, 0.08022f, 0.036889f), 0.2f, 0.0f);
-	drawObjectPBR(models::marbleBustContext, glm::mat4(), glm::vec3(1.f, 1.f, 1.f), 0.5f, 1.0f);
-	drawObjectPBR(models::materaceContext, glm::mat4(), glm::vec3(0.9f, 0.9f, 0.9f), 0.8f, 0.0f);
-	drawObjectPBR(models::pencilsContext, glm::mat4(), glm::vec3(0.10039f, 0.018356f, 0.001935f), 0.1f, 0.0f);
-	drawObjectPBR(models::planeContext, glm::mat4(), glm::vec3(0.402978f, 0.120509f, 0.057729f), 0.2f, 0.0f);
-	drawObjectPBR(models::roomContext, glm::mat4(), glm::vec3(0.9f, 0.9f, 0.9f), 0.8f, 0.0f);
-	drawObjectPBR(models::windowContext, glm::mat4(), glm::vec3(0.402978f, 0.120509f, 0.057729f), 0.2f, 0.0f);*/
+	
 
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
@@ -367,23 +368,14 @@ void init(GLFWwindow* window)
 	loadModelToContext("./models/sphere.obj", sphereContext);
 	loadModelToContext("./models/spaceship.obj", shipContext);
 
-	loadModelToContext("./models/drawer.obj", models::drawerContext);
+	loadModelToContext("./models/ground.obj", models::groundContext);
+	loadModelToContext("./models/portal.obj", models::portalContext);
+	loadModelToContext("./models/water.obj", models::waterContext);
+	loadModelToContext("./models/lantern.obj", models::lanternContext);
+
+	
 
 
-	/*loadModelToContext("./models/bed.obj", models::bedContext);
-	loadModelToContext("./models/chair.obj", models::chairContext);
-	loadModelToContext("./models/desk.obj", models::deskContext);
-	loadModelToContext("./models/door.obj", models::doorContext);
-	loadModelToContext("./models/drawer.obj", models::drawerContext);
-	loadModelToContext("./models/marbleBust.obj", models::marbleBustContext);
-	loadModelToContext("./models/materace.obj", models::materaceContext);
-	loadModelToContext("./models/pencils.obj", models::pencilsContext);
-	loadModelToContext("./models/plane.obj", models::planeContext);
-	loadModelToContext("./models/room.obj", models::roomContext);
-	loadModelToContext("./models/spaceship.obj", models::spaceshipContext);
-	loadModelToContext("./models/sphere.obj", models::sphereContext);
-	loadModelToContext("./models/window.obj", models::windowContext);
-	loadModelToContext("./models/test.obj", models::testContext);*/
 
 	createSkybox();
 }
@@ -420,6 +412,9 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		spaceshipDir = glm::vec3(glm::eulerAngleY(-angleSpeed) * glm::vec4(spaceshipDir, 0));
 
+	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+		std::cout << "Spaceship Position: (" << spaceshipPos.x << ", " << spaceshipPos.y << ", " << spaceshipPos.z << ")" << std::endl;
+
 	cameraPos = spaceshipPos - 0.5 * spaceshipDir + glm::vec3(0, 1, 0) * 0.2f;
 	cameraDir = spaceshipDir;
 
@@ -443,7 +438,7 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
 	{
 		// Teleport spaceship to a new location
-		spaceshipPos = glm::vec3(25.0f, 3.0f, 25.0f);
+		spaceshipPos = glm::vec3(1000.0f, 3.0f, 1000.0f);
 
 		// Set the camera position and direction for the new scene
 		//cameraPos = glm::vec3((30.0f, 1.0f, 30.0f));
