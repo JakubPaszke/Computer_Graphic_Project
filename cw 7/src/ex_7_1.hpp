@@ -17,6 +17,25 @@
 #include <assimp/postprocess.h>
 #include <string>
 #include "SOIL/SOIL.h"
+#include "skybox.h"
+#include "glew.h"
+#include <GLFW/glfw3.h>
+#include "glm.hpp"
+#include "ext.hpp"
+#include <iostream>
+#include <cmath>
+
+#include "Shader_Loader.h"
+#include "Render_Utils.h"
+//#include "Texture.h"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <string>
+#include "Texture.h"
+#include "skybox.h"
+#include "SOIL/stb_image_aug.h"
 
 
 namespace texture {
@@ -42,6 +61,7 @@ GLuint programTex;
 GLuint programEarth;
 GLuint programProcTex;
 GLuint programCubemap;
+GLuint skyboxProgram;
 
 Core::Shader_Loader shaderLoader;
 
@@ -57,19 +77,27 @@ glm::vec3 lightColor = glm::vec3(0.9, 0.7, 0.8) * 100;
 
 glm::vec3 spaceshipPos = glm::vec3(-4.f, 0, 0);
 glm::vec3 spaceshipDir = glm::vec3(1.f, 0.f, 0.f);
-glm::vec3 sunPos = glm::vec3();
 glm::vec3 earthPos = glm::vec3();
 glm::vec3 moonPos = glm::vec3();
 
 
 GLuint VAO,VBO;
 
+float exposition = 1.f;
 float aspectRatio = 1.f;
 float totalMoney = 0;
-float lastResetedAsteroidTime = glfwGetTime();
-float lastSpawnedAsteroidTime = glfwGetTime();
-float lastTryMetalSpawnTime = glfwGetTime();
-float health = 10;
+unsigned int skyboxVAO, skyboxVBO, cubemapTexture;
+
+//do pbr
+glm::vec3 sunPos = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 sunDir = glm::vec3(-0.93633f, 0.351106, 0.003226f);
+glm::vec3 sunColor = glm::vec3(0.9f, 0.9f, 0.7f) * 5;
+glm::vec3 pointlightPos = glm::vec3(0, 2, 0);
+glm::vec3 pointlightColor = glm::vec3(0.9, 0.6, 0.6);glm::vec3 spotlightPos = glm::vec3(0, 0, 0);
+glm::vec3 spotlightConeDir = glm::vec3(0, 0, 0);
+glm::vec3 spotlightColor = glm::vec3(0.4, 0.4, 0.9) * 3;
+float spotlightPhi = 3.14 / 4;
+//
 
 std::vector<std::pair<std::string, glm::mat4>> objectData;
 
@@ -90,6 +118,8 @@ glm::mat4 createCameraMatrix()
 	return cameraMatrix;
 }
 
+
+
 glm::mat4 createPerspectiveMatrix()
 {
 	
@@ -109,6 +139,36 @@ glm::mat4 createPerspectiveMatrix()
 	perspectiveMatrix=glm::transpose(perspectiveMatrix);
 
 	return perspectiveMatrix;
+}
+
+void drawObjectPBR(Core::RenderContext& context, glm::mat4 modelMatrix, glm::vec3 color, float roughness, float metallic) {
+
+	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
+	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
+	glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&transformation);
+	glUniformMatrix4fv(glGetUniformLocation(program, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+
+	glUniform1f(glGetUniformLocation(program, "exposition"), exposition);
+
+	glUniform1f(glGetUniformLocation(program, "roughness"), roughness);
+	glUniform1f(glGetUniformLocation(program, "metallic"), metallic);
+
+	glUniform3f(glGetUniformLocation(program, "color"), color.x, color.y, color.z);
+
+	glUniform3f(glGetUniformLocation(program, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glUniform3f(glGetUniformLocation(program, "sunDir"), sunDir.x, sunDir.y, sunDir.z);
+	glUniform3f(glGetUniformLocation(program, "sunColor"), sunColor.x, sunColor.y, sunColor.z);
+
+	glUniform3f(glGetUniformLocation(program, "lightPos"), pointlightPos.x, pointlightPos.y, pointlightPos.z);
+	glUniform3f(glGetUniformLocation(program, "lightColor"), pointlightColor.x, pointlightColor.y, pointlightColor.z);
+
+	glUniform3f(glGetUniformLocation(program, "spotlightConeDir"), spotlightConeDir.x, spotlightConeDir.y, spotlightConeDir.z);
+	glUniform3f(glGetUniformLocation(program, "spotlightPos"), spotlightPos.x, spotlightPos.y, spotlightPos.z);
+	glUniform3f(glGetUniformLocation(program, "spotlightColor"), spotlightColor.x, spotlightColor.y, spotlightColor.z);
+	glUniform1f(glGetUniformLocation(program, "spotlightPhi"), spotlightPhi);
+	Core::DrawContext(context);
+
 }
 
 void drawObjectTexture(Core::RenderContext& context, const std::string& objectName, glm::mat4 modelMatrix, GLuint textureID) {
@@ -362,6 +422,58 @@ void initializePlanetData() {
 	}
 }
 
+unsigned int createCubemap()
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	std::vector<std::string> faces = getCubemapFaces();
+	int width, height, nrChannels;
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+		);
+		stbi_image_free(data);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	return textureID;
+}
+
+void createSkybox() {
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	cubemapTexture = createCubemap();
+	glUseProgram(skyboxProgram);
+	glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
+}
+
+void renderSkybox() {
+
+	glm::mat4 projectionMatrix = createPerspectiveMatrix();
+	glm::mat4 viewMatrix = createCameraMatrix();
+	glDepthFunc(GL_LEQUAL);
+	glUseProgram(skyboxProgram);
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+	glBindVertexArray(skyboxVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LESS);
+}
+
 
 void renderScene(GLFWwindow* window)
 {
@@ -370,8 +482,15 @@ void renderScene(GLFWwindow* window)
 	glm::mat4 transformation;
 	float time = glfwGetTime();
 
+	/*drawCubemap(cubemapContext, texture::skybox);*/
+	renderSkybox();
+
+
+
+
 	objectData.clear();
 
+	//slonce
 	drawObjectTexture(sphereContext, "sun", glm::mat4() * glm::scale(glm::vec3(1.0f)), texture::sun);
 	objectData.push_back({ "sun", glm::mat4() });
 
@@ -390,6 +509,14 @@ void renderScene(GLFWwindow* window)
 		texture::ship
 	);
 
+	//testPBR
+	drawObjectPBR(
+		sphereContext, 
+		glm::translate(glm::vec3(0.f, 1.f, 0.f)) * glm::scale(glm::vec3(0.4)) * glm::eulerAngleY(time / 2) * glm::translate(glm::vec3(4.f, 3.0f, 6.0f)) * glm::scale(glm::vec3(0.8f)),
+		glm::vec3(0.2, 0.7, 0.3),
+		0.9,
+		0.9);
+	
 	// rysowanie i zbieranie z planet
 	for (Planet& planet : planets) {
 		planet.draw();
@@ -439,6 +566,11 @@ void loadModelToContext(std::string path, Core::RenderContext& context)
 	context.initFromAssimpMesh(scene->mMeshes[0]);
 }
 
+
+
+
+
+
 void init(GLFWwindow* window)
 {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -449,6 +581,7 @@ void init(GLFWwindow* window)
 	programEarth = shaderLoader.CreateProgram("shaders/shader_5_1_tex.vert", "shaders/shader_5_1_tex.frag");
 	programProcTex = shaderLoader.CreateProgram("shaders/shader_5_1_tex.vert", "shaders/shader_5_1_tex.frag");
 	programCubemap = shaderLoader.CreateProgram("shaders/shader_skybox.vert", "shaders/shader_skybox.frag");
+	skyboxProgram = shaderLoader.CreateProgram("shaders/shader_skybox.vert", "shaders/shader_skybox.frag");
 
 
 	loadModelToContext("./models/sphere.obj", sphereContext);
@@ -476,6 +609,7 @@ void init(GLFWwindow* window)
 	texture::asteroid = Core::LoadTexture("textures/moon.jpg");
 	texture::metal = Core::LoadTexture("textures/metal.jpg");
 
+	createSkybox();
 
 }
 
@@ -489,8 +623,8 @@ void processInput(GLFWwindow* window)
 {
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::vec3(0.f, 1.f, 0.f);
-	float angleSpeed = 0.005f;
-	float moveSpeed = 0.005f;
+	float angleSpeed = 0.05f;
+	float moveSpeed = 0.05f;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
