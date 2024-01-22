@@ -280,6 +280,11 @@ void renderScene(GLFWwindow* window)
 		glm::vec3(0.7, 0.7, 0.5),
 		0.2, 0.9);
 
+	drawObjectPBR(models::drawerContext,
+		glm::mat4() * glm::translate(glm::vec3(25.0f, 1.0f, 25.0f)),
+		glm::vec3(0.428691f, 0.08022f, 0.036889f),
+		0.2f, 0.2f);
+
 
 	/*drawObjectPBR(models::bedContext, glm::mat4(), glm::vec3(0.03f, 0.03f, 0.03f), 0.2f, 0.0f);
 	drawObjectPBR(models::chairContext, glm::mat4(), glm::vec3(0.195239f, 0.37728f, 0.8f), 0.4f, 0.0f);
@@ -362,6 +367,8 @@ void init(GLFWwindow* window)
 	loadModelToContext("./models/sphere.obj", sphereContext);
 	loadModelToContext("./models/spaceship.obj", shipContext);
 
+	loadModelToContext("./models/drawer.obj", models::drawerContext);
+
 
 	/*loadModelToContext("./models/bed.obj", models::bedContext);
 	loadModelToContext("./models/chair.obj", models::chairContext);
@@ -424,6 +431,23 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
 		printf("spaceshipPos = glm::vec3(%ff, %ff, %ff);\n", spaceshipPos.x, spaceshipPos.y, spaceshipPos.z);
 		printf("spaceshipDir = glm::vec3(%ff, %ff, %ff);\n", spaceshipDir.x, spaceshipDir.y, spaceshipDir.z);
+	}
+	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+		// Teleport spaceship to the sun
+		spaceshipPos = sunPos;
+		// Set the camera position to be slightly above the spaceship
+		cameraPos = sunPos + glm::vec3(0.0f, 0.5f, 0.0f);
+		// Set the camera direction to look at the sun
+		//cameraDir = glm::normalize(sunPos - cameraPos);
+	}
+	if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+	{
+		// Teleport spaceship to a new location
+		spaceshipPos = glm::vec3(25.0f, 3.0f, 25.0f);
+
+		// Set the camera position and direction for the new scene
+		//cameraPos = glm::vec3((30.0f, 1.0f, 30.0f));
+		//cameraDir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	//cameraDir = glm::normalize(-cameraPos);
