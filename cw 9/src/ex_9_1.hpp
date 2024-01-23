@@ -34,6 +34,8 @@ namespace models {
 	Core::RenderContext portalContext;
 	Core::RenderContext waterContext;
 	Core::RenderContext lanternContext;
+	Core::RenderContext asteroidContext;
+	Core::RenderContext metalContext;
 }
 
 namespace texture {
@@ -44,6 +46,8 @@ namespace texture {
 	GLuint skybox;
 	GLuint grid;
 	GLuint sun;
+	GLuint metal;
+	GLuint asteroid;
 
 	GLuint earthNormal;
 	GLuint asteroidNormal;
@@ -98,208 +102,22 @@ glm::vec3 spotlightColor = glm::vec3(0.4, 0.4, 0.9)*3;
 float spotlightPhi = 3.14 / 4;
 
 
+std::vector<std::pair<std::string, glm::mat4>> objectData;
 
 float lastTime = -1.f;
 float deltaTime = 0.f;
 int isIsland = 0;
+float totalMoney = 0;
+int health = 10;
+float lastResetedAsteroidTime = glfwGetTime();
+float lastSpawnedAsteroidTime = glfwGetTime();
+float lastTryMetalSpawnTime = glfwGetTime();
 
-// Planety, Asteroidy i Metale
-
-
-glm::vec3 extractPosition(const std::string& objectName, const std::vector<std::pair<std::string, glm::mat4>>& objectMatrices) {
-	for (const auto& entry : objectMatrices) {
-		if (entry.first == objectName) {
-			return glm::vec3(entry.second[3]);
-		}
-	}
-
-	return glm::vec3(0.0f);
-}
+glm::vec3 lightColor = glm::vec3(0.9, 0.7, 0.8) * 100;
 
 
-float calculateDistance(glm::vec3 point1, glm::vec3 point2) {
-	return glm::length(point1 - point2);
-}
 
 
-class Planet {
-public:
-	std::string name;
-	float timeDelta;
-	glm::mat4 modelMatrix;
-	GLuint textureID;
-	float moneyToDelete;
-	int isDeleted;
-	float maxMoney;
-
-	Planet(const std::string& planetName, const glm::mat4& initialModelMatrix, GLuint planetTexture, float maxMoney, float moneyToDelete)
-		: name(planetName), timeDelta(0.0f), modelMatrix(initialModelMatrix), textureID(planetTexture), maxMoney(maxMoney), moneyToDelete(moneyToDelete), isDeleted(0) {}
-
-	void update(GLFWwindow* window) {
-		if (isDeleted == 1) {
-			return;
-		}
-		float time = glfwGetTime();
-		float distanceToPlayer = calculateDistance(spaceshipPos, extractPosition(name, objectData));
-		const float collectionRadius = 1.0f;
-		const float moneyToCollect = glm::min((time - timeDelta) / 100, maxMoney);
-
-		//printf("Name: %s \n distance to player: %f\n spaceshipPos: %f %f %f\n position: %f %f %f\n", name.c_str(), distanceToPlayer, spaceshipPos.x, spaceshipPos.y, spaceshipPos.z, extractPosition(name, objectData).x, extractPosition(name, objectData).y, extractPosition(name, objectData).z);
-
-		if (distanceToPlayer < collectionRadius) {
-			if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
-				totalMoney += moneyToCollect;
-				timeDelta = time;
-				printf("collected money for %s: %f\n", name.c_str(), moneyToCollect);
-				printf("total money %f\n", totalMoney);
-				glfwWaitEventsTimeout(0.1f);
-			}
-			else if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
-				if (totalMoney > moneyToDelete) {
-					totalMoney -= moneyToDelete;
-					printf("The planet was destroyed. Cost: %f, current money: %f\n", moneyToDelete, totalMoney);
-					isDeleted = 1;
-					glfwWaitEventsTimeout(0.1f);
-				}
-				else {
-					printf("Not enaugh money. Needed: %f, You have: %f\n", moneyToDelete, totalMoney);
-					glfwWaitEventsTimeout(0.1f);
-				}
-			}
-		}
-	}
-
-	void draw() {
-		if (isDeleted == 1) {
-			return;
-		}
-		float time = glfwGetTime();
-		modelMatrix = calculateModelMatrix(time);
-		drawObjectTexture(sphereContext, name, modelMatrix, texture::earth);
-		objectData.push_back({ name, modelMatrix });
-	}
-
-private:
-	glm::mat4 calculateModelMatrix(float currentTime) {
-		if (name == "earth") {
-			return glm::eulerAngleY(currentTime / 30) * glm::translate(glm::vec3(20.f, 0, 0)) * glm::scale(glm::vec3(0.3f));
-		}
-		else if (name == "venus") {
-			return glm::eulerAngleY(currentTime / 100) * glm::translate(glm::vec3(50.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
-		}
-		else if (name == "mars") {
-			return glm::eulerAngleY(currentTime / 15) * glm::translate(glm::vec3(10.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
-		}
-	}
-};
-
-class Asteroid {
-public:
-	glm::vec3 position;
-	glm::mat4 modelMatrix;
-	GLuint textureID;
-	glm::vec3 direction;
-	float speed;
-	float timeSpawned;
-	float distanceToPlayer;
-
-	Asteroid() {
-		position = generateRandomPosition();
-		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
-		textureID = texture::asteroid;
-		direction = glm::normalize(spaceshipPos - position);
-		speed = 0.002f;
-		timeSpawned = glfwGetTime();
-	}
-
-	void draw() {
-		position += direction * speed;
-		if (glfwGetTime() - timeSpawned > 20.0f && glfwGetTime() - lastResetedAsteroidTime > 5.0f) {
-			position = generateRandomPosition();
-			timeSpawned = glfwGetTime();
-			lastResetedAsteroidTime = timeSpawned;
-		}
-		distanceToPlayer = calculateDistance(spaceshipPos, position);
-
-		if (distanceToPlayer < 0.5f) {
-			position = generateRandomPosition();
-			timeSpawned = glfwGetTime();
-			lastResetedAsteroidTime = timeSpawned;
-			health -= 3;
-			printf("COLLISION! HEALTH: %f\n", health);
-		}
-		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
-		direction = glm::normalize(spaceshipPos - position);
-		drawObjectTexture(asteroidContext, "asteroid", modelMatrix, textureID);
-	}
-
-private:
-	glm::vec3 generateRandomPosition() {
-		float x = spaceshipPos.y + ((rand() % 100) - 50);
-		float z = spaceshipPos.z + ((rand() % 100) - 50);
-		return glm::vec3(x, 0, z);
-	}
-};
-
-class Metal {
-public:
-	glm::vec3 position;
-	glm::mat4 modelMatrix;
-	GLuint textureID;
-	glm::vec3 direction;
-	float speed;
-	float distanceToPlayer;
-	int isCollected = 0;
-
-	Metal() {
-		position = generateRandomPosition();
-		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
-		textureID = texture::metal;
-		direction = glm::normalize(-position);
-		speed = 0.001f;
-	}
-
-	void draw() {
-		if (isCollected == 0) {
-			position += direction * speed;
-			distanceToPlayer = calculateDistance(spaceshipPos, position);
-			if (distanceToPlayer < 0.5f) {
-				health += 1;
-				printf("METAL CAPTURED! HEALTH: %f\n", health);
-				isCollected = 1;
-			}
-			modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
-			drawObjectTexture(metalContext, "metal"// + std::to_string(rand() % 1000000)
-				, modelMatrix, textureID);
-
-			if (isCollected == 0 && (abs(position.x) > 50 || abs(position.z) > 50)) {
-				isCollected = 1;
-			}
-		}
-	}
-
-private:
-	glm::vec3 generateRandomPosition() {
-		float x = spaceshipPos.y + ((rand() % 100) - 50);
-		float z = spaceshipPos.z + ((rand() % 100) - 50);
-		return glm::vec3(x, 0, z);
-	}
-};
-
-std::vector<Asteroid> asteroids;
-std::vector<Planet> planets;
-std::vector<Metal> metals;
-
-void initializePlanetData() {
-	float time = glfwGetTime();
-	planets.push_back(Planet("earth", glm::eulerAngleY(time / 30) * glm::translate(glm::vec3(20.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), texture::earth, 1000, 10));
-	planets.push_back(Planet("venus", glm::eulerAngleY(time / 100) * glm::translate(glm::vec3(50.f, 0, 0)) * glm::scale(glm::vec3(0.25f)), texture::earth, 10000, 100));
-	planets.push_back(Planet("mars", glm::eulerAngleY(time / 15) * glm::translate(glm::vec3(10.f, 0, 0)) * glm::scale(glm::vec3(0.25f)), texture::earth, 2000, 2));
-
-	for (int i = 0; i < 3; ++i) {
-		asteroids.push_back(Asteroid());
-	}
-}
 
 void updateDeltaTime(float time) {
 	if (lastTime < 0) {
@@ -478,6 +296,235 @@ void renderSkybox()
 	glDepthFunc(GL_LESS);
 }
 
+glm::vec3 extractPosition(const std::string& objectName, const std::vector<std::pair<std::string, glm::mat4>>& objectMatrices) {
+	for (const auto& entry : objectMatrices) {
+		if (entry.first == objectName) {
+			return glm::vec3(entry.second[3]);
+		}
+	}
+
+	return glm::vec3(0.0f);
+}
+
+
+float calculateDistance(glm::vec3 point1, glm::vec3 point2) {
+	return glm::length(point1 - point2);
+}
+
+
+
+class Planet {
+public:
+	std::string name;
+	float timeDelta;
+	glm::mat4 modelMatrix;
+	GLuint textureID;
+	float moneyToDelete;
+	int isDeleted;
+	float maxMoney;
+
+	Planet(const std::string& planetName, const glm::mat4& initialModelMatrix, GLuint planetTexture, float maxMoney, float moneyToDelete)
+		: name(planetName), timeDelta(0.0f), modelMatrix(initialModelMatrix), textureID(planetTexture), maxMoney(maxMoney), moneyToDelete(moneyToDelete), isDeleted(0) {}
+
+	void update(GLFWwindow* window) {
+		if (isDeleted == 1) {
+			return;
+		}
+		float time = glfwGetTime();
+		float distanceToPlayer = calculateDistance(spaceshipPos, extractPosition(name, objectData));
+		const float collectionRadius = 1.0f;
+		const float moneyToCollect = glm::min((time - timeDelta) / 100, maxMoney);
+
+		//printf("Name: %s \n distance to player: %f\n spaceshipPos: %f %f %f\n position: %f %f %f\n", name.c_str(), distanceToPlayer, spaceshipPos.x, spaceshipPos.y, spaceshipPos.z, extractPosition(name, objectData).x, extractPosition(name, objectData).y, extractPosition(name, objectData).z);
+
+		if (distanceToPlayer < collectionRadius) {
+			if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+				totalMoney += moneyToCollect;
+				timeDelta = time;
+				printf("collected money for %s: %f\n", name.c_str(), moneyToCollect);
+				printf("total money %f\n", totalMoney);
+				glfwWaitEventsTimeout(0.1f);
+			}
+			else if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
+				if (totalMoney > moneyToDelete) {
+					totalMoney -= moneyToDelete;
+					printf("The planet was destroyed. Cost: %f, current money: %f\n", moneyToDelete, totalMoney);
+					isDeleted = 1;
+					glfwWaitEventsTimeout(0.1f);
+				}
+				else {
+					printf("Not enaugh money. Needed: %f, You have: %f\n", moneyToDelete, totalMoney);
+					glfwWaitEventsTimeout(0.1f);
+				}
+			}
+		}
+	}
+
+	void draw() {
+		if (isDeleted == 1) {
+			return;
+		}
+		float time = glfwGetTime();
+		modelMatrix = calculateModelMatrix(time);
+		drawObjectTexture(sphereContext, name, modelMatrix, texture::earth);
+		objectData.push_back({ name, modelMatrix });
+	}
+
+private:
+	glm::mat4 calculateModelMatrix(float currentTime) {
+		if (name == "earth") {
+			return glm::eulerAngleY(currentTime / 30) * glm::translate(glm::vec3(20.f, 0, 0)) * glm::scale(glm::vec3(0.3f));
+		}
+		else if (name == "venus") {
+			return glm::eulerAngleY(currentTime / 100) * glm::translate(glm::vec3(50.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
+		}
+		else if (name == "mars") {
+			return glm::eulerAngleY(currentTime / 15) * glm::translate(glm::vec3(10.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
+		}
+	}
+};
+
+class Asteroid {
+public:
+	glm::vec3 position;
+	glm::mat4 modelMatrix;
+	GLuint textureID;
+	glm::vec3 direction;
+	float speed;
+	float timeSpawned;
+	float distanceToPlayer;
+
+	Asteroid() {
+		position = generateRandomPosition();
+		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
+		textureID = texture::asteroid;
+		direction = glm::normalize(spaceshipPos - position);
+		speed = 0.002f;
+		timeSpawned = glfwGetTime();
+	}
+
+	void draw() {
+		position += direction * speed;
+		if (glfwGetTime() - timeSpawned > 20.0f && glfwGetTime() - lastResetedAsteroidTime > 5.0f) {
+			position = generateRandomPosition();
+			timeSpawned = glfwGetTime();
+			lastResetedAsteroidTime = timeSpawned;
+		}
+		distanceToPlayer = calculateDistance(spaceshipPos, position);
+
+		if (distanceToPlayer < 0.5f) {
+			position = generateRandomPosition();
+			timeSpawned = glfwGetTime();
+			lastResetedAsteroidTime = timeSpawned;
+			health -= 3;
+			printf("COLLISION! HEALTH: %f\n", health);
+		}
+		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
+		direction = glm::normalize(spaceshipPos - position);
+		drawObjectTexture(models::asteroidContext, "asteroid", modelMatrix, textureID);
+	}
+
+private:
+	glm::vec3 generateRandomPosition() {
+		float x = spaceshipPos.y + ((rand() % 100) - 50);
+		float z = spaceshipPos.z + ((rand() % 100) - 50);
+		return glm::vec3(x, 0, z);
+	}
+};
+
+class Metal {
+public:
+	glm::vec3 position;
+	glm::mat4 modelMatrix;
+	GLuint textureID;
+	glm::vec3 direction;
+	float speed;
+	float distanceToPlayer;
+	int isCollected = 0;
+
+	Metal() {
+		position = generateRandomPosition();
+		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
+		textureID = texture::metal;
+		direction = glm::normalize(-position);
+		speed = 0.001f;
+	}
+
+	void draw() {
+		if (isCollected == 0) {
+			position += direction * speed;
+			distanceToPlayer = calculateDistance(spaceshipPos, position);
+			if (distanceToPlayer < 0.5f) {
+				health += 1;
+				printf("METAL CAPTURED! HEALTH: %f\n", health);
+				isCollected = 1;
+			}
+			modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
+			drawObjectTexture(models::metalContext, "metal"// + std::to_string(rand() % 1000000)
+				, modelMatrix, textureID);
+
+			if (isCollected == 0 && (abs(position.x) > 50 || abs(position.z) > 50)) {
+				isCollected = 1;
+			}
+		}
+	}
+
+private:
+	glm::vec3 generateRandomPosition() {
+		float x = spaceshipPos.y + ((rand() % 100) - 50);
+		float z = spaceshipPos.z + ((rand() % 100) - 50);
+		return glm::vec3(x, 0, z);
+	}
+};
+
+std::vector<Asteroid> asteroids;
+std::vector<Planet> planets;
+std::vector<Metal> metals;
+
+void initializePlanetData() {
+	float time = glfwGetTime();
+	planets.push_back(Planet("earth", glm::eulerAngleY(time / 30) * glm::translate(glm::vec3(20.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), texture::earth, 1000, 10));
+	planets.push_back(Planet("venus", glm::eulerAngleY(time / 100) * glm::translate(glm::vec3(50.f, 0, 0)) * glm::scale(glm::vec3(0.25f)), texture::earth, 10000, 100));
+	planets.push_back(Planet("mars", glm::eulerAngleY(time / 15) * glm::translate(glm::vec3(10.f, 0, 0)) * glm::scale(glm::vec3(0.25f)), texture::earth, 2000, 2));
+
+	for (int i = 0; i < 3; ++i) {
+		asteroids.push_back(Asteroid());
+	}
+}
+
+
+
+void makeLogicOnSpace(GLFWwindow* window) {
+	objectData.clear();
+
+	for (Planet& planet : planets) {
+		planet.draw();
+		planet.update(window);
+	}
+
+	if (glfwGetTime() - lastSpawnedAsteroidTime > 10.0f && asteroids.size() < 20) {
+		asteroids.push_back(Asteroid());
+		lastSpawnedAsteroidTime = glfwGetTime();
+	}
+
+	for (Asteroid& asteroid : asteroids) {
+		asteroid.draw();
+	}
+
+	if (glfwGetTime() - lastTryMetalSpawnTime > 10) {
+		if (rand() % 100 >= 0.97) {
+			metals.push_back(Metal());
+			printf("Metal spawned!");
+		}
+		lastTryMetalSpawnTime = glfwGetTime();
+	}
+
+
+	for (Metal& metal : metals) {
+		metal.draw();
+	}
+}
+
 void renderScene(GLFWwindow* window)
 {
 	//ClearColor(0.4f, 0.4f, 0.8f, 1.0f);
@@ -575,7 +622,10 @@ void renderScene(GLFWwindow* window)
 	spotlightPos = spaceshipPos + 0.2 * spaceshipDir;
 	spotlightConeDir = spaceshipDir;
 
-
+	// rysowanie i zbieranie z planet
+	if (isIsland == 0) {
+		makeLogicOnSpace(window);
+	}
 
 	//test depth buffer
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -625,7 +675,8 @@ void init(GLFWwindow* window)
 	loadModelToContext("./models/portal.obj", models::portalContext);
 	loadModelToContext("./models/water.obj", models::waterContext);
 	loadModelToContext("./models/lantern.obj", models::lanternContext);
-
+	loadModelToContext("./models/asteroid.obj", models::asteroidContext);
+	loadModelToContext("./models/metal.obj", models::metalContext);
 	
 
 

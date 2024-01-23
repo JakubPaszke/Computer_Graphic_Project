@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\Box.cpp;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\Box.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\Camera.cpp;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\Camera.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\main.cpp;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\main.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\Render_Utils.cpp;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\Render_Utils.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\Shader_Loader.cpp;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\Shader_Loader.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\SOIL\image_DXT.c;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\image_DXT.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\SOIL\image_helper.c;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\image_helper.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\SOIL\SOIL.c;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\SOIL.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\SOIL\stb_image_aug.c;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\stb_image_aug.obj
-C:\Users\admin\source\repos\C_G_P_2\cw 9\src\Texture.cpp;C:\Users\admin\source\repos\C_G_P_2\cw 9\Debug\Texture.obj
-=======
 C:\Users\Jakub\Desktop\grk-projekt\cw 9\src\Box.cpp;C:\Users\Jakub\Desktop\grk-projekt\cw 9\Debug\Box.obj
 C:\Users\Jakub\Desktop\grk-projekt\cw 9\src\Camera.cpp;C:\Users\Jakub\Desktop\grk-projekt\cw 9\Debug\Camera.obj
 C:\Users\Jakub\Desktop\grk-projekt\cw 9\src\main.cpp;C:\Users\Jakub\Desktop\grk-projekt\cw 9\Debug\main.obj
@@ -20,4 +8,3 @@ C:\Users\Jakub\Desktop\grk-projekt\cw 9\src\SOIL\image_helper.c;C:\Users\Jakub\D
 C:\Users\Jakub\Desktop\grk-projekt\cw 9\src\SOIL\SOIL.c;C:\Users\Jakub\Desktop\grk-projekt\cw 9\Debug\SOIL.obj
 C:\Users\Jakub\Desktop\grk-projekt\cw 9\src\SOIL\stb_image_aug.c;C:\Users\Jakub\Desktop\grk-projekt\cw 9\Debug\stb_image_aug.obj
 C:\Users\Jakub\Desktop\grk-projekt\cw 9\src\Texture.cpp;C:\Users\Jakub\Desktop\grk-projekt\cw 9\Debug\Texture.obj
->>>>>>> adding objects
