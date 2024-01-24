@@ -11,6 +11,7 @@ uniform mat4 modelMatrix;
 
 out vec3 vecNormal;
 out vec3 worldPos;
+out vec2 texCoords;
 
 uniform vec3 lightPos;
 uniform vec3 spotlightPos;
@@ -39,5 +40,5 @@ void main()
 	vec3 SL = normalize(spotlightPos-worldPos);
 	spotlightDirTS = TBN*SL;
 	sunDirTS = TBN*sunDir;
-
+	texCoords = vertexTexCoord;
 }
