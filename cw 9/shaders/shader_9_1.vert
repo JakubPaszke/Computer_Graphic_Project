@@ -16,12 +16,10 @@ out vec2 texCoords;
 uniform vec3 lightPos;
 uniform vec3 spotlightPos;
 uniform vec3 cameraPos;
-uniform vec3 sunDir;
 
 out vec3 viewDirTS;
 out vec3 lightDirTS;
 out vec3 spotlightDirTS;
-out vec3 sunDirTS;
 
 void main()
 {
@@ -39,6 +37,5 @@ void main()
 	lightDirTS = TBN*L;
 	vec3 SL = normalize(spotlightPos-worldPos);
 	spotlightDirTS = TBN*SL;
-	sunDirTS = TBN*sunDir;
 	texCoords = vertexTexCoord;
 }

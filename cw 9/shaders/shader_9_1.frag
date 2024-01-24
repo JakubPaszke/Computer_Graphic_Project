@@ -1,6 +1,6 @@
 #version 430 core
 
-float AMBIENT = 0.003;
+float AMBIENT = 0.03;
 float PI = 3.14;
 
 uniform sampler2D depthMap;
@@ -34,9 +34,6 @@ out vec4 outColor;
 in vec3 viewDirTS;
 in vec3 lightDirTS;
 in vec3 spotlightDirTS;
-in vec3 sunDirTS;
-
-in vec3 test;
 
 float DistributionGGX(vec3 normal, vec3 H, float roughness){
     float a      = roughness*roughness;
@@ -105,7 +102,7 @@ void main()
     //vec3 normal = normalize(vecNormal);
 
     vec3 color = texture(albedoMap, texCoords).rgb;
-    vec3 normal = normalize(texture(normalMap, texCoords).rgb * 2.0 - 1.0);
+    vec3 normal = normalize(vecNormal);
     float roughness = texture(roughnessMap, texCoords).r;
     float metallic = texture(metallicMap, texCoords).r;
 
@@ -123,7 +120,8 @@ void main()
 	
 
     //sun
-	ilumination=ilumination+PBRLight(sunDir,sunColor,normal,viewDir,color,roughness,metallic);
+    vec3 sunLightDir = normalize(sunDir - worldPos);
+	ilumination=ilumination+PBRLight(sunLightDir,sunColor,normal,viewDir,color,roughness,metallic);
 
 	//flashlight
 	//vec3 spotlightDir= normalize(spotlightDirTS);
