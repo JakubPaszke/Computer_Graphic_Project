@@ -131,7 +131,6 @@ void main()
 	ilumination = ambient+PBRLight(lightDir,attenuatedlightColor,normal,viewDir);
 	
 	//flashlight
-	//vec3 spotlightDir= normalize(spotlightDirTS);
 	vec3 spotlightDir= normalize(spotlightPos-worldPos);
 	
 
@@ -142,8 +141,5 @@ void main()
 	//sun
 	ilumination=ilumination+PBRLight(sunDir,sunColor*calculateShadow(normal, sunDir, sunSpacePos, depthMap),normal,viewDir);
 
-    
 	outColor = vec4(vec3(1.0) - exp(-ilumination*exposition),1);
-	//outColor = vec4(roughness,metallic,0,1);
-    //outColor = vec4(test;
 }

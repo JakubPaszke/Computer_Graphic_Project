@@ -10,6 +10,8 @@ uniform mat4 lightVP;
 uniform mat4 transformation;
 uniform mat4 modelMatrix;
 
+
+
 out vec3 vecNormal;
 out vec3 worldPos;
 out vec2 texCoords;

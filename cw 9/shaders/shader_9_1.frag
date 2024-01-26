@@ -133,7 +133,6 @@ void main()
 	
 
     //sun
-    //PO CO TO????
     vec3 sunLightDir = normalize(sunDir - worldPos);
 	ilumination=ilumination+PBRLight(sunLightDir,sunColor*calculateShadow(normal, sunDir, sunSpacePos, depthMap),normal,viewDir,color,roughness,metallic);
 
