@@ -42,6 +42,10 @@ namespace models {
 }
 
 namespace texture {
+	GLuint defaultTexture;
+	GLuint defaultTextureNormal;
+	GLuint defaultTextureArm;
+
 	GLuint earth;
 	GLuint clouds;
 	GLuint moon;
@@ -55,6 +59,14 @@ namespace texture {
 	GLuint earthNormal;
 	GLuint asteroidNormal;
 	GLuint shipNormal;
+}
+
+namespace islandPos {
+	int i;
+	glm::mat4 lanternPos = glm::mat4() * glm::translate(glm::vec3(-5.73019, 1.0, 0.350166)) * glm::scale(glm::vec3(0.03)); 
+	glm::mat4 groundPos = glm::mat4() * glm::translate(glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::vec3(0.006));
+	glm::mat4 portalPos = glm::mat4() * glm::translate(glm::vec3(0.373457, 5.11606, 3.78564)) * glm::scale(glm::vec3(0.3)) * glm::rotate(glm::mat4(1.0f), glm::radians(130.0f), glm::vec3(0.0f, 1.0f, 0.0f)) ;
+	glm::mat4 waterPos = glm::mat4()* glm::translate(glm::vec3(50.0f, -6.0f, 50.0f))* glm::scale(glm::vec3(0.7));;
 }
 
 
@@ -80,12 +92,14 @@ namespace planet_pbr {
 
 
 GLuint program;
+GLuint program2;
 GLuint programSun;
 GLuint programTest;
 GLuint programTex;
 GLuint programDepth;
 
 GLuint programCubemap;
+GLuint programIsland;
 GLuint skyboxProgram;
 
 Core::Shader_Loader shaderLoader;
@@ -106,7 +120,7 @@ glm::vec3 cameraDir = glm::vec3(-0.354510f, 0.000000f, 0.935054f);
 //depthmap
 GLuint depthMapFBO;
 GLuint depthMap;
-glm::mat4 lightVP = glm::ortho(-10.f, 10.f, -10.f, 10.f, 1.0f, 30.0f) * glm::lookAt(sunPos, sunPos - sunDir, glm::vec3(0, 1, 0));
+glm::mat4 lightVP;
 
 //statek
 glm::vec3 spaceshipPos = glm::vec3(0.065808f, 1.250000f, -2.189549f);
@@ -119,7 +133,7 @@ float aspectRatio = 1.f;
 float exposition = 1.f;
 
 //kula imitujaca slonce
-glm::vec3 pointlightPos = sunPos;
+glm::vec3 pointlightPos = glm::vec3(0, 0, 0);
 glm::vec3 pointlightColor = sunColor;
 
 glm::vec3 spotlightPos = glm::vec3(0, 0, 0);
@@ -219,6 +233,41 @@ void drawObjectPBR(Core::RenderContext& context, glm::mat4 modelMatrix, planet_p
 	Core::DrawContext(context);
 }
 
+void drawObjectNoTexturesPBR(Core::RenderContext& context, glm::mat4 modelMatrix, glm::vec3 color, float roughness, float metallic) {
+
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(programIsland, "depthMap"), 0);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glUniformMatrix4fv(glGetUniformLocation(programIsland, "lightVP"), 1, GL_FALSE, (float*)&lightVP);
+
+	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
+	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
+	glUniformMatrix4fv(glGetUniformLocation(programIsland, "transformation"), 1, GL_FALSE, (float*)&transformation);
+	glUniformMatrix4fv(glGetUniformLocation(programIsland, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+
+	glUniform1f(glGetUniformLocation(programIsland, "exposition"), exposition);
+
+	glUniform1f(glGetUniformLocation(programIsland, "roughness"), roughness);
+	glUniform1f(glGetUniformLocation(programIsland, "metallic"), metallic);
+
+	glUniform3f(glGetUniformLocation(programIsland, "color"), color.x, color.y, color.z);
+
+	glUniform3f(glGetUniformLocation(programIsland, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glUniform3f(glGetUniformLocation(programIsland, "sunDir"), sunDir.x, sunDir.y, sunDir.z);
+	glUniform3f(glGetUniformLocation(programIsland, "sunColor"), sunColor.x, sunColor.y, sunColor.z);
+
+	glUniform3f(glGetUniformLocation(programIsland, "lightPos"), pointlightPos.x, pointlightPos.y, pointlightPos.z);
+	glUniform3f(glGetUniformLocation(programIsland, "lightColor"), pointlightColor.x, pointlightColor.y, pointlightColor.z);
+
+	glUniform3f(glGetUniformLocation(programIsland, "spotlightConeDir"), spotlightConeDir.x, spotlightConeDir.y, spotlightConeDir.z);
+	glUniform3f(glGetUniformLocation(programIsland, "spotlightPos"), spotlightPos.x, spotlightPos.y, spotlightPos.z);
+	glUniform3f(glGetUniformLocation(programIsland, "spotlightColor"), spotlightColor.x, spotlightColor.y, spotlightColor.z);
+	glUniform1f(glGetUniformLocation(programIsland, "spotlightPhi"), spotlightPhi);
+
+	Core::DrawContext(context);
+
+}
 
 void initDepthMap()
 {
@@ -262,9 +311,25 @@ void renderShadowmapSun() {
 	//ustawianie programu
 	glUseProgram(programDepth);
 
-	drawObjectDepth(models::roomContext, lightVP, glm::mat4());
-	drawObjectDepth(models::windowContext, lightVP, glm::mat4());
+	//drawObjectDepth(models::roomContext, lightVP, glm::mat4());
+	//drawObjectDepth(models::windowContext, lightVP, glm::mat4());
 
+	drawObjectDepth(models::lanternContext, lightVP, islandPos::lanternPos);
+	drawObjectDepth(models::portalContext, lightVP, islandPos::portalPos);
+
+
+	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
+	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
+	glm::mat4 specshipCameraRotrationMatrix = glm::mat4({
+		spaceshipSide.x,spaceshipSide.y,spaceshipSide.z,0,
+		spaceshipUp.x,spaceshipUp.y,spaceshipUp.z ,0,
+		-spaceshipDir.x,-spaceshipDir.y,-spaceshipDir.z,0,
+		0.,0.,0.,1.,
+		});
+
+
+	drawObjectDepth(models::spaceshipContext, lightVP, glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()) * glm::scale(glm::vec3(0.03f))
+	);
 
 
 
@@ -590,7 +655,6 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	float time = glfwGetTime();
 	updateDeltaTime(time);
-	renderShadowmapSun();
 	renderSkybox();
 	
 	//space lamp
@@ -636,31 +700,43 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 	float time = glfwGetTime();
 	updateDeltaTime(time);
 	renderShadowmapSun();
-	renderSkybox();
+	renderSkybox();	
 
+	
+	glUseProgram(programIsland);
+
+
+	drawObjectNoTexturesPBR(models::lanternContext,
+		islandPos::lanternPos,
+		glm::vec3(0.9f, 0.9f, 0.9f),
+		0.5f, 0.3f);
+
+	drawObjectNoTexturesPBR(models::groundContext,
+		islandPos::groundPos,
+		glm::vec3(0.9f, 0.9f, 0.9f),
+		0.8f, 0.0f);
+
+	drawObjectNoTexturesPBR(models::portalContext,
+		islandPos::portalPos,
+		glm::vec3(0.1f, 0.9f, 0.5f),
+		0.2f, 0.8f);
+
+	/*drawObjectNoTexturesPBR(models::waterContext,
+		islandPos::waterPos,
+		glm::vec3(0.1f, 0.3f, 0.8f),
+		0.3f, 0.4f);*/
+
+	//poprawic
+	
 	glUseProgram(program);
-	/*
-	drawObjectPBR(models::waterContext,
-		glm::mat4() * glm::translate(glm::vec3(50.0f, -21.0f, 50.0f)) * glm::scale(glm::vec3(0.7)),
+	drawObjectPBR(models::waterContext, 
+		islandPos::waterPos, 
 		planet_pbr::mercuryTex);
 
-	drawObjectPBR(models::groundContext,
-		glm::mat4() * glm::translate(glm::vec3(10.0f, -14.0f, 0.0f)) * glm::scale(glm::vec3(0.004)),
-		planet_pbr::mercuryTex);
+	
 
-	drawObjectPBR(models::portalContext,
-		glm::mat4() * glm::translate(glm::vec3(24.0f, -9.0f, 6.0f)) * glm::scale(glm::vec3(0.5)) * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-		planet_pbr::mercuryTex);
-
-	drawObjectPBR(models::lanternContext,
-		glm::mat4() * glm::translate(glm::vec3(10.0f, -14.0f, -2.0f)) * glm::scale(glm::vec3(0.05)),
-		planet_pbr::mercuryTex);
-
-	*/
-
-	drawObjectPBR(models::roomContext, glm::mat4(), planet_pbr::mercuryTex);
-	drawObjectPBR(models::windowContext, glm::mat4(), planet_pbr::mercuryTex);
-
+	glUseProgram(0);
+	glUseProgram(program);
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
 	glm::mat4 specshipCameraRotrationMatrix = glm::mat4({
@@ -678,6 +754,8 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 	spotlightPos = spaceshipPos + 0.2 * spaceshipDir;
 	spotlightConeDir = spaceshipDir;
 
+	glUseProgram(0);
+	glUseProgram(program2);
 	//test depth buffer
 	/*glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(programTest);
@@ -715,12 +793,13 @@ void init(GLFWwindow* window)
 
 	glEnable(GL_DEPTH_TEST);
 	program = shaderLoader.CreateProgram("shaders/shader_9_1.vert", "shaders/shader_9_1.frag");
+	//program2 = shaderLoader.CreateProgram("shaders/shader_2.vert", "shaders/shader_2.frag");
 	programTest = shaderLoader.CreateProgram("shaders/test.vert", "shaders/test.frag");
 	programSun = shaderLoader.CreateProgram("shaders/shader_8_sun.vert", "shaders/shader_8_sun.frag");
 	programCubemap = shaderLoader.CreateProgram("shaders/shader_skybox.vert", "shaders/shader_skybox.frag");
 	skyboxProgram = shaderLoader.CreateProgram("shaders/shader_skybox.vert", "shaders/shader_skybox.frag");
 
-
+	programIsland = shaderLoader.CreateProgram("shaders/shader_island.vert", "shaders/shader_island.frag");
 	programDepth = shaderLoader.CreateProgram("shaders/shader_depth.vert", "shaders/shader_depth.frag");
 
 
@@ -748,6 +827,10 @@ void init(GLFWwindow* window)
 	planet_pbr::earthTex.normal = Core::LoadTexture("textures/earth_normal.bmp");
 	planet_pbr::earthTex.roughness = Core::LoadTexture("textures/earth_metallic.bmp");
 	planet_pbr::earthTex.metallic = Core::LoadTexture("textures/earth_smoothness.bmp");
+
+	texture::defaultTexture = Core::LoadTexture("textures/default/default.png");
+	texture::defaultTextureNormal = Core::LoadTexture("textures/default/default_normalmap.png");
+	texture::defaultTextureArm = Core::LoadTexture("textures/default/default_arm.png");
 
 	createSkybox();
 	initDepthMap();
@@ -802,11 +885,8 @@ void processInput(GLFWwindow* window)
 		printf("spotlightConeDir = glm::vec3(%ff, %ff, %ff);\n", spotlightConeDir.x, spotlightConeDir.y, spotlightConeDir.z);
 
 	}
-	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
-		// Teleport spaceship to the sun
-		spaceshipPos = sunPos;
-		
-		cameraPos = sunPos + glm::vec3(0.0f, 0.5f, 0.0f);
+	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) 
+	{
 		isIsland = 0;
 	}
 	if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
@@ -832,20 +912,22 @@ void renderLoop(GLFWwindow* window) {
 			pointlightPos = sunPos;
 			pointlightColor = sunColor;
 
-			spotlightPos = glm::vec3(0, 0, 0);
-			spotlightConeDir = glm::vec3(0, 0, 0);
-			spotlightColor = glm::vec3(0.4, 0.4, 0.9) * 3;
-
 			renderSceneSpace(window);
 
 		}
 		else 
 		{
 			//tu jest pojebane w shaderze kuba, wiec pointlight bedace sloncem jest tak naprawde sunPos == pointlightPos itd
-			pointlightPos = glm::vec3(-7.740971f, 1.149999f, 0.369280f);
-			pointlightColor = glm::vec3(0.9, 0.6, 0.6)*500;
-			sunDir = glm::vec3(-0.93633f, 0.351106, 0.003226f);
+			//to mozna uzyc jako lampeczka ale tak to po chuuj to
+			pointlightPos = glm::vec3(0, 20, 0);
+			pointlightColor = glm::vec3(0.9, 0.6, 0.6)*5;
 
+
+			sunPos = glm::vec3(-4.740971f, 2.149999f, 0.369280f);
+			sunDir = glm::vec3(-0.93633f, 0.351106, 0.003226f);
+			sunColor = glm::vec3(0.9f, 0.9f, 0.7f) * 5;
+
+			lightVP = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.0f, 30.0f) * glm::lookAt(sunPos, sunPos - sunDir, glm::vec3(0, 1, 0));
 			renderScenePlanet(window);
 		}
 		glfwPollEvents();

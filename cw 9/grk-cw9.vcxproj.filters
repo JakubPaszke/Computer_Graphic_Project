@@ -124,5 +124,29 @@
     <None Include="shaders\shader_depth.vert">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\shader_island.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_island.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_2.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_2.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_bloom.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_bloom.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_blur.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_blur.vert">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
