@@ -566,7 +566,7 @@ public:
 		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
 		textureID = planet_pbr::mercuryTex;
 		direction = glm::normalize(spaceshipPos - position);
-		speed = 0.02f;
+		speed = 0.03f * deltaTime * 60;
 		timeSpawned = glfwGetTime();
 	}
 
@@ -581,14 +581,14 @@ public:
 
 		//printf("Distance to player: %f\n", distanceToPlayer);
 
-		if (distanceToPlayer < 0.5f) {
+		if (distanceToPlayer < 0.18f) {
 			position = generateRandomPosition();
 			timeSpawned = glfwGetTime();
 			lastResetedAsteroidTime = timeSpawned;
 			health -= 3;
 			printf("COLLISION! HEALTH: %f\n", health);
 		}
-		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
+		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.00005f));
 		direction = glm::normalize(spaceshipPos - position);
 		drawObjectPBR(models::asteroidContext, modelMatrix, textureID);
 	}
@@ -616,19 +616,19 @@ public:
 		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
 		textureID = planet_pbr::mercuryTex;
 		direction = glm::normalize(-position);
-		speed = 0.001f;
+		speed = 0.002f * deltaTime * 60;
 	}
 
 	void draw() {
 		if (isCollected == 0) {
 			position += direction * speed;
 			distanceToPlayer = calculateDistance(spaceshipPos, position);
-			if (distanceToPlayer < 0.5f) {
+			if (distanceToPlayer < 0.18f) {
 				health += 1;
 				printf("METAL CAPTURED! HEALTH: %f\n", health);
 				isCollected = 1;
 			}
-			modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
+			modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0005f));
 			drawObjectPBR(models::metalContext, modelMatrix, textureID);
 
 			if (isCollected == 0 && (abs(position.x) > 50 || abs(position.z) > 50)) {
@@ -680,7 +680,7 @@ void makeLogicOnSpace(GLFWwindow* window) {
 	}
 
 	if (glfwGetTime() - lastTryMetalSpawnTime > 10) {
-		if (rand() % 100 >= 0.97) {
+		if (rand() % 100 >= 97) {
 			metals.push_back(Metal());
 			printf("Metal spawned!");
 		}
@@ -692,7 +692,6 @@ void makeLogicOnSpace(GLFWwindow* window) {
 		metal.draw();
 	}
 
-	printf("Current position: %f %f %f\n Current dir: %f %f %f\n", spaceshipPos.x, spaceshipPos.y, spaceshipPos.z, spaceshipDir.x, spaceshipDir.y, spaceshipDir.z);
 }
 
 void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
@@ -900,7 +899,7 @@ void processInput(GLFWwindow* window)
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f,1.f,0.f)));
 	glm::vec3 spaceshipUp = glm::vec3(0.f, 1.f, 0.f);
 	float angleSpeed = 0.05f * deltaTime * 60;
-	float moveSpeed = 0.5f * deltaTime * 60;
+	float moveSpeed = 0.05f * deltaTime * 60;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
