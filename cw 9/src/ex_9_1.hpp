@@ -22,7 +22,7 @@
 const unsigned int SHADOW_WIDTH = 4024, SHADOW_HEIGHT = 4024;
 
 int WIDTH = 500, HEIGHT = 500;
-int isIsland = 1;
+int isIsland = 0;
 
 
 namespace models {
@@ -93,6 +93,7 @@ namespace planet_pbr {
 	PlanetTextures uranTex;
 	PlanetTextures neptunTex;
 	PlanetTextures sunTex;
+	PlanetTextures asteroidTex;
 
 	PlanetTextures defaultTex;
 }
@@ -119,7 +120,7 @@ Core::RenderContext sphereContext;
 //zrodlo swiatla ogolnego
 glm::vec3 sunPos = glm::vec3(0, 0, 0);
 glm::vec3 sunDir = glm::vec3(-10.93633f, 0.351106, 0.003226f);
-glm::vec3 sunColor = glm::vec3(0.9f, 0.9f, 0.7f)*500;
+glm::vec3 sunColor = glm::vec3(0.9f, 0.9f, 0.7f);
 
 //camera
 glm::vec3 cameraPos = glm::vec3(0.479490f, 1.250000f, -2.124680f);
@@ -131,7 +132,7 @@ GLuint depthMap;
 glm::mat4 lightVP;
 
 //statek
-glm::vec3 spaceshipPos = glm::vec3(0.065808f, 1.250000f, -2.189549f);
+glm::vec3 spaceshipPos = glm::vec3(36.065808f, 1.250000f, -2.189549f);
 glm::vec3 spaceshipDir = glm::vec3(-0.490263f, 0.000000f, 0.871578f);
 GLuint VAO,VBO;
 unsigned int skyboxVAO, skyboxVBO, cubemapTexture, secondCubemapTexture;
@@ -538,15 +539,31 @@ public:
 	}
 
 private:
+	float scale = 2;
 	glm::mat4 calculateModelMatrix(float currentTime) {
-		if (name == "earth") {
-			return glm::eulerAngleY(currentTime / 15) * glm::translate(glm::vec3(10.f, 0, 0)) * glm::scale(glm::vec3(0.3f));
+		if (name == "mercury") {
+			return glm::eulerAngleY(currentTime / 10) * glm::translate(glm::vec3(13.f * scale, 0, 0.f)) * glm::scale(glm::vec3(0.25f));
 		}
 		else if (name == "venus") {
-			return glm::eulerAngleY(currentTime / 50) * glm::translate(glm::vec3(20.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
+			return glm::eulerAngleY((currentTime + 300) / 13) * glm::translate(glm::vec3(16.f * scale, 0, 0.f)) * glm::scale(glm::vec3(0.3f));
+		}
+		else if (name == "earth") {
+			return glm::eulerAngleY((currentTime + 600) / 17) * glm::translate(glm::vec3(18.f * scale, 0, 0.f)) * glm::scale(glm::vec3(0.35f));
 		}
 		else if (name == "mars") {
-			return glm::eulerAngleY(currentTime / 8) * glm::translate(glm::vec3(3.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
+			return glm::eulerAngleY(currentTime / 20) * glm::translate(glm::vec3(25.f * scale, 0, 0.f)) * glm::scale(glm::vec3(0.35f));
+		}
+		else if (name == "jupiter") {
+			return glm::eulerAngleY(currentTime / 20) * glm::translate(glm::vec3(40.f * scale, 0, 0.f)) * glm::scale(glm::vec3(3.f));
+		}
+		else if (name == "saturn") {
+			return glm::eulerAngleY(currentTime / 30) * glm::translate(glm::vec3(55.f * scale, 0, 0.f)) * glm::scale(glm::vec3(2.f));
+		}
+		else if (name == "neptune") {
+			return glm::eulerAngleY(currentTime / 40) * glm::translate(glm::vec3(66.f * scale, 0, 0.f)) * glm::scale(glm::vec3(1.7f));
+		}
+		else if (name == "pluto") {
+			return glm::eulerAngleY(currentTime / 50) * glm::translate(glm::vec3(85.f * scale, 0, 0.f)) * glm::scale(glm::vec3(0.9f));
 		}
 	}
 };
@@ -564,7 +581,7 @@ public:
 	Asteroid() {
 		position = generateRandomPosition();
 		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
-		textureID = planet_pbr::mercuryTex;
+		textureID = planet_pbr::asteroidTex;
 		direction = glm::normalize(spaceshipPos - position);
 		speed = 0.03f * deltaTime * 60;
 		timeSpawned = glfwGetTime();
@@ -578,8 +595,6 @@ public:
 			lastResetedAsteroidTime = timeSpawned;
 		}
 		distanceToPlayer = calculateDistance(spaceshipPos, position);
-
-		//printf("Distance to player: %f\n", distanceToPlayer);
 
 		if (distanceToPlayer < 0.18f) {
 			position = generateRandomPosition();
@@ -651,11 +666,16 @@ std::vector<Metal> metals;
 
 void initializePlanetData() {
 	float time = glfwGetTime();
-	planets.push_back(Planet("earth", glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(5.f, 0, 5.f)) * glm::scale(glm::vec3(0.3f)), planet_pbr::mercuryTex, 1000, 10));
-	planets.push_back(Planet("venus", glm::eulerAngleY(time / 10) * glm::translate(glm::vec3(8.f, 0, 8.f)) * glm::scale(glm::vec3(0.25f)), planet_pbr::earthTex, 10000, 100));
-	planets.push_back(Planet("mars", glm::eulerAngleY(time / 3/2) * glm::translate(glm::vec3(3.f, 0, 3.f)) * glm::scale(glm::vec3(0.25f)), planet_pbr::mercuryTex, 2000, 2));
+	planets.push_back(Planet("mercury", glm::eulerAngleY(time / 3/2) * glm::translate(glm::vec3(3.f, 0, 0.f)) * glm::scale(glm::vec3(0.2f)), planet_pbr::mercuryTex, 300, 1000));
+	planets.push_back(Planet("venus", glm::eulerAngleY((time + 300) / 3) * glm::translate(glm::vec3(6.f, 0, 0.f)) * glm::scale(glm::vec3(0.3f)), planet_pbr::venusTex, 600, 2000));
+	planets.push_back(Planet("earth", glm::eulerAngleY((time + 600) / 4) * glm::translate(glm::vec3(8.f, 0, 0.f)) * glm::scale(glm::vec3(0.25f)), planet_pbr::earthTex, 800, 2500));
+	planets.push_back(Planet("mars", glm::eulerAngleY((time + 1200) / 7) * glm::translate(glm::vec3(10.f, 0, 0.f)) * glm::scale(glm::vec3(0.35f)), planet_pbr::marsTex, 1000, 3500));
+	planets.push_back(Planet("jupiter", glm::eulerAngleY(time / 20) * glm::translate(glm::vec3(20.f, 0, 0.f)) * glm::scale(glm::vec3(1.f)), planet_pbr::jupiterTex, 48000, 30000));
+	planets.push_back(Planet("saturn", glm::eulerAngleY(time / 30) * glm::translate(glm::vec3(30.f, 0, 0.f)) * glm::scale(glm::vec3(0.85f)), planet_pbr::saturnTex, 38000, 26000));
+	planets.push_back(Planet("neptune", glm::eulerAngleY(time / 40) * glm::translate(glm::vec3(38.f, 0, 0.f)) * glm::scale(glm::vec3(0.70f)), planet_pbr::neptunTex, 38000, 20000));
+	planets.push_back(Planet("pluto", glm::eulerAngleY(time / 50) * glm::translate(glm::vec3(48.f, 0, 0.f)) * glm::scale(glm::vec3(0.50f)), planet_pbr::uranTex, 20000, 16000));
 
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 6; ++i) {
 		asteroids.push_back(Asteroid());
 	}
 }
@@ -704,10 +724,11 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	//space lamp
 	glUseProgram(programSun);
 	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
-	glm::mat4 transformation = viewProjectionMatrix * glm::translate(pointlightPos) * glm::scale(glm::vec3(0.7));
+	glm::mat4 transformation = viewProjectionMatrix * glm::translate(pointlightPos) * glm::scale(glm::vec3(10));
 	glUniformMatrix4fv(glGetUniformLocation(programSun, "transformation"), 1, GL_FALSE, (float*)&transformation);
 	glUniform3f(glGetUniformLocation(programSun, "color"), sunColor.x / 2, sunColor.y / 2, sunColor.z / 2);
 	glUniform1f(glGetUniformLocation(programSun, "exposition"), exposition);
+	Core::SetActiveTexture(planet_pbr::sunTex.albedo, "sunTexture", program, 0);
 	Core::DrawContext(sphereContext);
 
 	//planety ukladu
@@ -872,6 +893,48 @@ void init(GLFWwindow* window)
 	planet_pbr::earthTex.normal = Core::LoadTexture("textures/earth_normal.bmp");
 	planet_pbr::earthTex.roughness = Core::LoadTexture("textures/earth_metallic.bmp");
 	planet_pbr::earthTex.metallic = Core::LoadTexture("textures/earth_smoothness.bmp");
+
+	planet_pbr::venusTex.albedo = Core::LoadTexture("textures/venus_diffuseOriginal.bmp");
+	planet_pbr::venusTex.normal = Core::LoadTexture("textures/venus_normal.bmp");
+	planet_pbr::venusTex.roughness = Core::LoadTexture("textures/venus_metallic.bmp");
+	planet_pbr::venusTex.metallic = Core::LoadTexture("textures/venus_smoothness.bmp");
+
+	planet_pbr::marsTex.albedo = Core::LoadTexture("textures/mars_diffuseOriginal.bmp");
+	planet_pbr::marsTex.normal = Core::LoadTexture("textures/mars_normal.bmp");
+	planet_pbr::marsTex.roughness = Core::LoadTexture("textures/mars_metallic.bmp");
+	planet_pbr::marsTex.metallic = Core::LoadTexture("textures/mars_smoothness.bmp");
+
+	planet_pbr::jupiterTex.albedo = Core::LoadTexture("textures/jupiter_diffuseOriginal.bmp");
+	planet_pbr::jupiterTex.normal = Core::LoadTexture("textures/jupiter_normal.bmp");
+	planet_pbr::jupiterTex.roughness = Core::LoadTexture("textures/jupiter_metallic.bmp");
+	planet_pbr::jupiterTex.metallic = Core::LoadTexture("textures/jupiter_smoothness.bmp");
+
+	planet_pbr::saturnTex.albedo = Core::LoadTexture("textures/saturn_diffuseOriginal.bmp");
+	planet_pbr::saturnTex.normal = Core::LoadTexture("textures/saturn_normal.bmp");
+	planet_pbr::saturnTex.roughness = Core::LoadTexture("textures/saturn_metallic.bmp");
+	planet_pbr::saturnTex.metallic = Core::LoadTexture("textures/saturn_smoothness.bmp");
+
+	planet_pbr::neptunTex.albedo = Core::LoadTexture("textures/neptune_diffuseOriginal.bmp");
+	planet_pbr::neptunTex.normal = Core::LoadTexture("textures/neptune_normal.bmp");
+	planet_pbr::neptunTex.roughness = Core::LoadTexture("textures/neptune_metallic.bmp");
+	planet_pbr::neptunTex.metallic = Core::LoadTexture("textures/neptune_smoothness.bmp");
+
+	planet_pbr::uranTex.albedo = Core::LoadTexture("textures/pluto_diffuseOriginal.bmp");
+	planet_pbr::uranTex.normal = Core::LoadTexture("textures/pluto_normal.bmp");
+	planet_pbr::uranTex.roughness = Core::LoadTexture("textures/pluto_metallic.bmp");
+	planet_pbr::uranTex.metallic = Core::LoadTexture("textures/pluto_smoothness.bmp");
+
+	planet_pbr::asteroidTex.albedo = Core::LoadTexture("textures/asteroid_diffuseOriginal.bmp");
+	planet_pbr::asteroidTex.normal = Core::LoadTexture("textures/asteroid_normal.bmp");
+	planet_pbr::asteroidTex.roughness = Core::LoadTexture("textures/asteroid_metallic.bmp");
+	planet_pbr::asteroidTex.metallic = Core::LoadTexture("textures/asteroid_smoothness.bmp");
+
+	planet_pbr::sunTex.albedo = Core::LoadTexture("textures/sun_diffuseOriginal.bmp");
+	planet_pbr::sunTex.normal = Core::LoadTexture("textures/sun_normal.bmp");
+	planet_pbr::sunTex.roughness = Core::LoadTexture("textures/sun_metallic.bmp");
+	planet_pbr::sunTex.metallic = Core::LoadTexture("textures/sun_smoothness.bmp");
+
+
 
 	texture::defaultTexture = Core::LoadTexture("textures/default/default.png");
 	texture::defaultTextureNormal = Core::LoadTexture("textures/default/default_normalmap.png");

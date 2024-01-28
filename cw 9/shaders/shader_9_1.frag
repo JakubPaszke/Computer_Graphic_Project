@@ -1,6 +1,6 @@
 #version 430 core
 
-float AMBIENT = 0.03;
+float AMBIENT = 0.3;
 float PI = 3.14;
 
 uniform sampler2D depthMap;
