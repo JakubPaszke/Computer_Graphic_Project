@@ -21,14 +21,16 @@
 
 const unsigned int SHADOW_WIDTH = 4024, SHADOW_HEIGHT = 4024;
 
+
+
 int WIDTH = 500, HEIGHT = 500;
-int isIsland = 1;
+int isIsland = 0;
 
 
 namespace models {
 	
 	Core::RenderContext drawerContext;
-	Core::RenderContext planeContext;
+	Core::RenderContext healfPlaneContext;
 	Core::RenderContext spaceshipContext;
 	Core::RenderContext sphereContext;
 	Core::RenderContext testContext;
@@ -41,6 +43,14 @@ namespace models {
 	Core::RenderContext roomContext;
 	Core::RenderContext windowContext;
 
+}
+
+namespace healfPlate {
+	GLuint oneHealf;
+	GLuint twoHealf;
+	GLuint threeHealf;
+	GLuint fourHealf;
+	GLuint fiveHealf;
 }
 
 namespace texture {
@@ -61,6 +71,7 @@ namespace texture {
 	GLuint sun;
 	GLuint metal;
 	GLuint asteroid;
+
 
 	GLuint earthNormal;
 	GLuint asteroidNormal;
@@ -114,6 +125,7 @@ Core::Shader_Loader shaderLoader;
 
 Core::RenderContext shipContext;
 Core::RenderContext sphereContext;
+Core::RenderContext planeContext;
 
 
 //zrodlo swiatla ogolnego
@@ -191,6 +203,8 @@ glm::mat4 createCameraMatrix()
 	return cameraMatrix;
 }
 
+
+
 glm::mat4 createPerspectiveMatrix()
 {
 	
@@ -211,6 +225,7 @@ glm::mat4 createPerspectiveMatrix()
 
 	return perspectiveMatrix;
 }
+
 
 void drawObjectPBR(Core::RenderContext& context, glm::mat4 modelMatrix, planet_pbr::PlanetTextures& planetTextures) {
 
@@ -692,7 +707,7 @@ void makeLogicOnSpace(GLFWwindow* window) {
 		metal.draw();
 	}
 
-	printf("Current position: %f %f %f\n Current dir: %f %f %f\n", spaceshipPos.x, spaceshipPos.y, spaceshipPos.z, spaceshipDir.x, spaceshipDir.y, spaceshipDir.z);
+	//printf("Current position: %f %f %f\n Current dir: %f %f %f\n", spaceshipPos.x, spaceshipPos.y, spaceshipPos.z, spaceshipDir.x, spaceshipDir.y, spaceshipDir.z);
 }
 
 void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
@@ -719,7 +734,7 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
 	glm::mat4 specshipCameraRotrationMatrix = glm::mat4({
 		spaceshipSide.x,spaceshipSide.y,spaceshipSide.z,0,
-		spaceshipUp.x,spaceshipUp.y,spaceshipUp.z ,0,
+		spaceshipUp.x,spaceshipUp.y,spaceshipUp.z , 0,
 		-spaceshipDir.x,-spaceshipDir.y,-spaceshipDir.z,0,
 		0.,0.,0.,1.,
 		});
@@ -728,6 +743,19 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()) * glm::scale(glm::vec3(0.03f)),
 		planet_pbr::mercuryTex
 	);
+
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+	//printf("Width: %d Height: %d\n", width, height);
+	printf("Healf: %f\n", health);
+	glm::vec3 translationVector(0.0f, 0.5f, 0.4f);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	drawObjectNoTexturesPBR(models::healfPlaneContext,
+		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>()/2.f) * glm::eulerAngleY(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(0.1f)),
+		glm::vec3(0.9f, 0.9f, 0.9f),
+		0.8f, 0.0f);
+
+
 
 	spotlightPos = spaceshipPos + 0.2 * spaceshipDir;
 	spotlightConeDir = spaceshipDir;
@@ -863,6 +891,8 @@ void init(GLFWwindow* window)
 
 	loadModelToContext("./models/asteroid.obj", models::asteroidContext);
 	loadModelToContext("./models/metal.obj", models::metalContext);
+
+	loadModelToContext("./models/plane.obj", models::healfPlaneContext);
 	
 	planet_pbr::mercuryTex.albedo = Core::LoadTexture("textures/mercury_diffuseOriginal.bmp");
 	planet_pbr::mercuryTex.normal = Core::LoadTexture("textures/mercury_normal.bmp");
@@ -877,6 +907,8 @@ void init(GLFWwindow* window)
 	texture::defaultTexture = Core::LoadTexture("textures/default/default.png");
 	texture::defaultTextureNormal = Core::LoadTexture("textures/default/default_normalmap.png");
 	texture::defaultTextureArm = Core::LoadTexture("textures/default/default_arm.png");
+
+	healfPlate::oneHealf = Core::LoadTexture("textures/healfplate/oneHealf.png");
 
 	texture::snowTexture = Core::LoadTexture("textures/snow/snow_diff.jpg");
 	texture::snowTextureNormal = Core::LoadTexture("textures/snow/snow_normal.jpg");

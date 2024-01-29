@@ -37,6 +37,7 @@ int main(int argc, char** argv)
 	glViewport(0, 0, 500, 500);
 
 	init(window);
+	printf("GL-version: %s\n", glGetString(GL_VERSION));
 
 	// uruchomienie glownej petli
 	renderLoop(window);
