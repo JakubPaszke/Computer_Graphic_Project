@@ -749,12 +749,21 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	//printf("Width: %d Height: %d\n", width, height);
 	printf("Healf: %f\n", health);
 	glm::vec3 translationVector(0.0f, 0.5f, 0.4f);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glUseProgram(0);
+
+	glUseProgram(programIsland);
+	//glUseProgram (UIprogram)
+	//drawObjectPBR(model, tekstura, tekstura metealic, albedo, roughtnes)
+	//glUseProgram(0)
+	//gluse program konieczy do kontynuacji
+	//if healf ==1 innte tekstury
 	drawObjectNoTexturesPBR(models::healfPlaneContext,
 		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>()/2.f) * glm::eulerAngleY(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(0.1f)),
-		glm::vec3(0.9f, 0.9f, 0.9f),
+		glm::vec3(0.9f, 0.1f, 0.2f),
 		0.8f, 0.0f);
-
+	glUseProgram(0);
+	glUseProgram(program);
 
 
 	spotlightPos = spaceshipPos + 0.2 * spaceshipDir;
@@ -875,6 +884,9 @@ void init(GLFWwindow* window)
 
 	programIsland = shaderLoader.CreateProgram("shaders/shader_island.vert", "shaders/shader_island.frag");
 	programDepth = shaderLoader.CreateProgram("shaders/shader_depth.vert", "shaders/shader_depth.frag");
+
+	//UIprogram = ...
+	//wshaderze sutaw teksture jako kolor i pomin oswitelenie / ustaw stala wartosc
 
 
 	loadModelToContext("./models/sphere.obj", sphereContext);
