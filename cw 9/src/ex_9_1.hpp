@@ -30,7 +30,7 @@ int isIsland = 0;
 namespace models {
 	
 	Core::RenderContext drawerContext;
-	Core::RenderContext healfPlaneContext;
+	Core::RenderContext planeUiContext;
 	Core::RenderContext spaceshipContext;
 	Core::RenderContext sphereContext;
 	Core::RenderContext testContext;
@@ -45,12 +45,9 @@ namespace models {
 
 }
 
-namespace healfPlate {
-	GLuint oneHealf;
-	GLuint twoHealf;
-	GLuint threeHealf;
-	GLuint fourHealf;
-	GLuint fiveHealf;
+namespace UI_Plate {
+	GLuint oneHeart;
+	GLuint oneCoin;
 }
 
 namespace texture {
@@ -515,16 +512,19 @@ public:
 	float moneyToDelete;
 	int isDeleted;
 	float maxMoney;
+	float moneyToCollect;
+	glm::vec3 position;
 
 	Planet(const std::string& planetName, const glm::mat4& initialModelMatrix, planet_pbr::PlanetTextures planetTexture, float maxMoney, float moneyToDelete)
-		: name(planetName), timeDelta(0.0f), modelMatrix(initialModelMatrix), textureID(planetTexture), maxMoney(maxMoney), moneyToDelete(moneyToDelete), isDeleted(0) {}
+		: name(planetName), timeDelta(0.0f), modelMatrix(initialModelMatrix), textureID(planetTexture), maxMoney(maxMoney), moneyToCollect(0), moneyToDelete(moneyToDelete), isDeleted(0) {}
 
 	void update(GLFWwindow* window) {
 		if (isDeleted == 1) {
 			return;
 		}
 		float time = glfwGetTime();
-		float distanceToPlayer = calculateDistance(spaceshipPos, extractPosition(name, objectData));
+		position = extractPosition(name, objectData);
+		float distanceToPlayer = calculateDistance(spaceshipPos, position);
 		const float collectionRadius = 1.0f;
 		const float moneyToCollect = glm::min((time - timeDelta) / 100, maxMoney);
 
@@ -566,13 +566,16 @@ public:
 private:
 	glm::mat4 calculateModelMatrix(float currentTime) {
 		if (name == "earth") {
-			return glm::eulerAngleY(currentTime / 15) * glm::translate(glm::vec3(10.f, 0, 0)) * glm::scale(glm::vec3(0.3f));
+			modelMatrix = glm::eulerAngleY(currentTime / 15) * glm::translate(glm::vec3(10.f, 0, 0)) * glm::scale(glm::vec3(0.3f));
+			return modelMatrix;
 		}
 		else if (name == "venus") {
-			return glm::eulerAngleY(currentTime / 50) * glm::translate(glm::vec3(20.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
+			modelMatrix = glm::eulerAngleY(currentTime / 50) * glm::translate(glm::vec3(20.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
+			return modelMatrix;
 		}
 		else if (name == "mars") {
-			return glm::eulerAngleY(currentTime / 8) * glm::translate(glm::vec3(3.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
+			modelMatrix = glm::eulerAngleY(currentTime / 8) * glm::translate(glm::vec3(3.f, 0, 0)) * glm::scale(glm::vec3(0.25f));
+			return modelMatrix;
 		}
 	}
 };
@@ -721,6 +724,26 @@ void makeLogicOnSpace(GLFWwindow* window) {
 	//printf("Current position: %f %f %f\n Current dir: %f %f %f\n", spaceshipPos.x, spaceshipPos.y, spaceshipPos.z, spaceshipDir.x, spaceshipDir.y, spaceshipDir.z);
 }
 
+glm::mat4 createBillboardMatrix(glm::vec3 billboardPosition, glm::vec3 cameraPosition) {
+	// Calculate the direction from the billboard to the camera
+	glm::vec3 forward = glm::normalize(cameraPosition - billboardPosition);
+
+	// Set the up vector to restrict rotation to side-to-side (assuming Y is the up direction)
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+	// Calculate the right vector
+	glm::vec3 right = glm::cross(up, forward);
+
+	// Recalculate the up vector to ensure it is perpendicular to both forward and right
+	up = glm::cross(forward, right);
+
+	// Create the view matrix with the calculated orientation
+	glm::mat4 viewMatrix = glm::lookAt(billboardPosition, billboardPosition + forward, up);
+
+	// Invert the view matrix to get the billboard matrix
+	return glm::inverse(viewMatrix);
+}
+
 void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -757,27 +780,6 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 
 	glUseProgram(0);
 
-	glUseProgram(UIprogram);
-
-	health = 5; //WARNING: temporary health setting
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	float hp_width = 0.15;
-	for (int i = 0; i < health; ++i) {
-		float padding = 0;
-		if (int(health) % 2 == 0) {
-			padding += hp_width / 2.f;
-		}
-		padding -= hp_width * (static_cast<int>(health) / 2);
-		printf("padding %f\n", padding);
-
-		glm::vec3 translationVector(padding +hp_width*i, 0.4f, 0.4f);
-		drawObjectUI(models::healfPlaneContext,
-			glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(0.04f)),
-			healfPlate::oneHealf);
-	}
-
-	glUseProgram(0);
 	glUseProgram(program);
 
 
@@ -786,6 +788,53 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 
 	// rysowanie i zbieranie z planet
 	makeLogicOnSpace(window);
+
+	// serca oraz statkiem
+
+	glUseProgram(UIprogram);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+	//monety and planets
+	float magic_width_size_factor = 4.0f;
+	float coin_size = 0.35f;
+	float coin_width = coin_size * magic_width_size_factor;
+	for (Planet& planet : planets) {
+		planet.moneyToCollect = 1000;
+		int numberOfCoinsOnPlanet = 5 * static_cast<float>(planet.moneyToCollect) / planet.maxMoney;
+
+		float padding = 0;
+		if (numberOfCoinsOnPlanet % 2 == 0) {
+			padding += coin_width / 2.f;
+		}
+		padding -= coin_width * (numberOfCoinsOnPlanet / 2);
+
+		for (int i = 0; i < numberOfCoinsOnPlanet; ++i) {
+			glm::vec3 translationVector(padding + coin_width * i, 2.5f, 0.0f);
+			auto directionMatrix = createBillboardMatrix(planet.position + translationVector, cameraDir);
+			drawObjectUI(models::planeUiContext,
+				planet.modelMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(coin_size)),
+				UI_Plate::oneCoin);
+		}
+	}
+
+	health = 5; //WARNING: temporary health setting
+	float hp_size = 0.04f;
+	float hp_width = hp_size * magic_width_size_factor;
+	for (int i = 0; i < health; ++i) {
+		float padding = 0;
+		if (int(health) % 2 == 0) {
+			padding += hp_width / 2.f;
+		}
+		padding -= hp_width * (static_cast<int>(health) / 2);
+
+		glm::vec3 translationVector(padding + hp_width * i, 0.4f, 0.4f);
+		drawObjectUI(models::planeUiContext,
+			glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(hp_size)),
+			UI_Plate::oneHeart);
+	}
 
 	glUseProgram(0);
 	glfwSwapBuffers(window);
@@ -919,7 +968,7 @@ void init(GLFWwindow* window)
 	loadModelToContext("./models/asteroid.obj", models::asteroidContext);
 	loadModelToContext("./models/metal.obj", models::metalContext);
 
-	loadModelToContext("./models/plane.obj", models::healfPlaneContext);
+	loadModelToContext("./models/plane.obj", models::planeUiContext);
 	
 	planet_pbr::mercuryTex.albedo = Core::LoadTexture("textures/mercury_diffuseOriginal.bmp");
 	planet_pbr::mercuryTex.normal = Core::LoadTexture("textures/mercury_normal.bmp");
@@ -935,7 +984,8 @@ void init(GLFWwindow* window)
 	texture::defaultTextureNormal = Core::LoadTexture("textures/default/default_normalmap.png");
 	texture::defaultTextureArm = Core::LoadTexture("textures/default/default_arm.png");
 
-	healfPlate::oneHealf = Core::LoadTexture("textures/healfplate/oneHealf.png");
+	UI_Plate::oneHeart = Core::LoadTexture("textures/UIplate/oneHeart.png");
+	UI_Plate::oneCoin = Core::LoadTexture("textures/UIplate/oneCoin.png");
 
 	texture::snowTexture = Core::LoadTexture("textures/snow/snow_diff.jpg");
 	texture::snowTextureNormal = Core::LoadTexture("textures/snow/snow_normal.jpg");

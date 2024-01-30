@@ -155,5 +155,8 @@
     <Image Include="..\..\..\..\Downloads\oneHealf.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\..\..\..\Downloads\oneCoin.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

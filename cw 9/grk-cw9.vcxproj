@@ -68,6 +68,7 @@
     <None Include="shaders\UI.vert" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\..\..\..\Downloads\oneCoin.png" />
     <Image Include="..\..\..\..\Downloads\oneHealf.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
