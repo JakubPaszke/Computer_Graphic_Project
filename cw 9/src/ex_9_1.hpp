@@ -120,6 +120,7 @@ GLuint programDepth;
 GLuint programCubemap;
 GLuint programIsland;
 GLuint skyboxProgram;
+GLuint UIprogram;
 
 Core::Shader_Loader shaderLoader;
 
@@ -226,6 +227,16 @@ glm::mat4 createPerspectiveMatrix()
 	return perspectiveMatrix;
 }
 
+void drawObjectUI(Core::RenderContext& context, glm::mat4 modelMatrix, GLuint texture) {
+	glUseProgram(UIprogram);
+	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
+	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
+	glUniformMatrix4fv(glGetUniformLocation(UIprogram, "transformation"), 1, GL_FALSE, (float*)&transformation);
+	glUniformMatrix4fv(glGetUniformLocation(UIprogram, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	glUniform3f(glGetUniformLocation(UIprogram, "lightPos"), 0, 0, 0);
+	Core::SetActiveTexture(texture, "colorTexture", UIprogram, 0);
+	Core::DrawContext(context);
+}
 
 void drawObjectPBR(Core::RenderContext& context, glm::mat4 modelMatrix, planet_pbr::PlanetTextures& planetTextures) {
 
@@ -744,24 +755,28 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 		planet_pbr::mercuryTex
 	);
 
-	int width, height;
-	glfwGetWindowSize(window, &width, &height);
-	//printf("Width: %d Height: %d\n", width, height);
-	printf("Healf: %f\n", health);
-	glm::vec3 translationVector(0.0f, 0.5f, 0.4f);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glUseProgram(0);
 
-	glUseProgram(programIsland);
-	//glUseProgram (UIprogram)
-	//drawObjectPBR(model, tekstura, tekstura metealic, albedo, roughtnes)
-	//glUseProgram(0)
-	//gluse program konieczy do kontynuacji
-	//if healf ==1 innte tekstury
-	drawObjectNoTexturesPBR(models::healfPlaneContext,
-		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>()/2.f) * glm::eulerAngleY(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(0.1f)),
-		glm::vec3(0.9f, 0.1f, 0.2f),
-		0.8f, 0.0f);
+	glUseProgram(UIprogram);
+
+	health = 5; //WARNING: temporary health setting
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	float hp_width = 0.15;
+	for (int i = 0; i < health; ++i) {
+		float padding = 0;
+		if (int(health) % 2 == 0) {
+			padding += hp_width / 2.f;
+		}
+		padding -= hp_width * (static_cast<int>(health) / 2);
+		printf("padding %f\n", padding);
+
+		glm::vec3 translationVector(padding +hp_width*i, 0.4f, 0.4f);
+		drawObjectUI(models::healfPlaneContext,
+			glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(0.04f)),
+			healfPlate::oneHealf);
+	}
+
 	glUseProgram(0);
 	glUseProgram(program);
 
@@ -885,8 +900,8 @@ void init(GLFWwindow* window)
 	programIsland = shaderLoader.CreateProgram("shaders/shader_island.vert", "shaders/shader_island.frag");
 	programDepth = shaderLoader.CreateProgram("shaders/shader_depth.vert", "shaders/shader_depth.frag");
 
-	//UIprogram = ...
-	//wshaderze sutaw teksture jako kolor i pomin oswitelenie / ustaw stala wartosc
+	//TODO: wshaderze sutaw teksture jako kolor i pomin oswitelenie / ustaw stala wartosc
+	UIprogram = shaderLoader.CreateProgram("shaders/UI.vert", "shaders/UI.frag");
 
 
 	loadModelToContext("./models/sphere.obj", sphereContext);
@@ -1004,8 +1019,6 @@ void renderLoop(GLFWwindow* window) {
 		processInput(window);
 		if (isIsland == 0) 
 		{
-			
-
 			sunPos = glm::vec3(0, 0, 0);
 			sunDir = glm::vec3(-10.93633f, 0.351106, 0.003226f);
 			sunColor = glm::vec3(0.9f, 0.9f, 0.7f) * 500;
@@ -1018,10 +1031,6 @@ void renderLoop(GLFWwindow* window) {
 		}
 		else 
 		{
-			//tu jest pojebane w shaderze kuba, wiec pointlight bedace sloncem jest tak naprawde sunPos == pointlightPos itd
-			//to mozna uzyc jako lampeczka ale tak to po chuuj to
-			
-
 			pointlightPos = glm::vec3(0, 20, 0);
 			pointlightColor = glm::vec3(0.9, 0.6, 0.6)*5;
 

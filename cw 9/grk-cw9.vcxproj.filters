@@ -148,6 +148,8 @@
     <None Include="shaders\shader_blur.vert">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\UI.frag" />
+    <None Include="shaders\UI.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\oneHealf.png">
