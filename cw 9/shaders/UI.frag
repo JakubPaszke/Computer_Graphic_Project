@@ -11,7 +11,5 @@ out vec4 outColor;
 void main()
 {
 	vec3 lightDir = normalize(lightPos-worldPos);
-	vec3 textureColor = texture2D(colorTexture, vecTex).xyz;
-	outColor = vec4(textureColor, 1.0);
-
+	outColor = texture2D(colorTexture, vecTex);
 }
