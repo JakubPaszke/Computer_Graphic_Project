@@ -178,10 +178,10 @@ void genRockPos() {
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<float> dis_y(-2.0f, 5.0f);
-	std::uniform_real_distribution<float> size(0.005f, 0.02f);
+	std::uniform_real_distribution<float> size(0.005f, 0.017f);
 
-	std::uniform_real_distribution<float> dis_x(-200.0f, -25.0f);
-	std::uniform_real_distribution<float> dis_z(-200.0f, 200.0f);
+	std::uniform_real_distribution<float> dis_x(-400.0f, -25.0f);
+	std::uniform_real_distribution<float> dis_z(-400.0f, 400.0f);
 	for (int i = 0; i < 15; i++) {
 
 		float x = dis_x(gen);
@@ -192,8 +192,8 @@ void genRockPos() {
 		islandPos::rockPos[i]= glm::mat4() * glm::translate(tmpRockPos) * glm::scale(glm::vec3(scale));
 	}
 
-	std::uniform_real_distribution<float> dis_x1(25.0f, 200.0f);
-	std::uniform_real_distribution<float> dis_z1(-200.0f, 200.0f);
+	std::uniform_real_distribution<float> dis_x1(25.0f, 400.0f);
+	std::uniform_real_distribution<float> dis_z1(-400.0f, 400.0f);
 	for (int i = 15; i < 30; i++) {
 
 		float x = dis_x1(gen);
@@ -205,7 +205,7 @@ void genRockPos() {
 	}
 
 	std::uniform_real_distribution<float> dis_x2(-25.0f, 25.0f);
-	std::uniform_real_distribution<float> dis_z2(25.0f, 200.0f);
+	std::uniform_real_distribution<float> dis_z2(25.0f, 400.0f);
 	for (int i = 30; i < 35; i++) {
 
 		float x = dis_x2(gen);
@@ -217,7 +217,7 @@ void genRockPos() {
 	}
 
 	std::uniform_real_distribution<float> dis_x3(-25.0f, 25.0f);
-	std::uniform_real_distribution<float> dis_z3(-200.0f, -25.0f);
+	std::uniform_real_distribution<float> dis_z3(-400.0f, -25.0f);
 	for (int i = 35; i < 40; i++) {
 
 		float x = dis_x3(gen);
