@@ -28,7 +28,7 @@ int isIsland = 0;
 
 
 namespace models {
-	
+
 	Core::RenderContext drawerContext;
 	Core::RenderContext planeUiContext;
 	Core::RenderContext spaceshipContext;
@@ -42,6 +42,7 @@ namespace models {
 	Core::RenderContext metalContext;
 	Core::RenderContext roomContext;
 	Core::RenderContext windowContext;
+	Core::RenderContext lego;
 
 }
 
@@ -79,8 +80,8 @@ namespace islandPos {
 	glm::mat4 lanternPos = glm::mat4() * glm::translate(glm::vec3(-5.73019, 1.0, 0.350166)) * glm::scale(glm::vec3(0.03));
 	//glm::mat4 lanternPos = glm::mat4() * glm::translate(glm::vec3(-3.73019, 1.0, -27.350166)) * glm::scale(glm::vec3(0.03));
 	glm::mat4 groundPos = glm::mat4() * glm::translate(glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::vec3(0.006));
-	glm::mat4 portalPos = glm::mat4() * glm::translate(glm::vec3(0.373457, 5.11606, 3.78564)) * glm::scale(glm::vec3(0.3)) * glm::rotate(glm::mat4(1.0f), glm::radians(130.0f), glm::vec3(0.0f, 1.0f, 0.0f)) ;
-	glm::mat4 waterPos = glm::mat4()* glm::translate(glm::vec3(20.0f, -6.0f, 20.0f))* glm::scale(glm::vec3(0.7));;
+	glm::mat4 portalPos = glm::mat4() * glm::translate(glm::vec3(0.373457, 5.11606, 3.78564)) * glm::scale(glm::vec3(0.3)) * glm::rotate(glm::mat4(1.0f), glm::radians(130.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 waterPos = glm::mat4() * glm::translate(glm::vec3(20.0f, -6.0f, 20.0f)) * glm::scale(glm::vec3(0.7));;
 }
 
 
@@ -129,7 +130,7 @@ Core::RenderContext planeContext;
 //zrodlo swiatla ogolnego
 glm::vec3 sunPos = glm::vec3(0, 0, 0);
 glm::vec3 sunDir = glm::vec3(-10.93633f, 0.351106, 0.003226f);
-glm::vec3 sunColor = glm::vec3(0.9f, 0.9f, 0.7f)*500;
+glm::vec3 sunColor = glm::vec3(0.9f, 0.9f, 0.7f) * 500;
 
 //camera
 glm::vec3 cameraPos = glm::vec3(0.479490f, 1.250000f, -2.124680f);
@@ -143,7 +144,7 @@ glm::mat4 lightVP;
 //statek
 glm::vec3 spaceshipPos = glm::vec3(0.065808f, 1.250000f, -2.189549f);
 glm::vec3 spaceshipDir = glm::vec3(-0.490263f, 0.000000f, 0.871578f);
-GLuint VAO,VBO;
+GLuint VAO, VBO;
 unsigned int skyboxVAO, skyboxVBO, cubemapTexture, secondCubemapTexture;
 
 float aspectRatio = 1.f;
@@ -156,7 +157,7 @@ glm::vec3 pointlightColor = sunColor;
 
 glm::vec3 spotlightPos = glm::vec3(0, 0, 0);
 glm::vec3 spotlightConeDir = glm::vec3(0, 0, 0);
-glm::vec3 spotlightColor = glm::vec3(0.4, 0.4, 0.9)*3;
+glm::vec3 spotlightColor = glm::vec3(0.4, 0.4, 0.9) * 3;
 float spotlightPhi = 3.14 / 4;
 
 
@@ -187,8 +188,8 @@ void updateDeltaTime(float time) {
 
 glm::mat4 createCameraMatrix()
 {
-	glm::vec3 cameraSide = glm::normalize(glm::cross(cameraDir,glm::vec3(0.f,1.f,0.f)));
-	glm::vec3 cameraUp = glm::normalize(glm::cross(cameraSide,cameraDir));
+	glm::vec3 cameraSide = glm::normalize(glm::cross(cameraDir, glm::vec3(0.f, 1.f, 0.f)));
+	glm::vec3 cameraUp = glm::normalize(glm::cross(cameraSide, cameraDir));
 	glm::mat4 cameraRotrationMatrix = glm::mat4({
 		cameraSide.x,cameraSide.y,cameraSide.z,0,
 		cameraUp.x,cameraUp.y,cameraUp.z ,0,
@@ -205,7 +206,7 @@ glm::mat4 createCameraMatrix()
 
 glm::mat4 createPerspectiveMatrix()
 {
-	
+
 	glm::mat4 perspectiveMatrix;
 	float n = 0.05;
 	float f = 200.;
@@ -214,18 +215,17 @@ glm::mat4 createPerspectiveMatrix()
 	perspectiveMatrix = glm::mat4({
 		1,0.,0.,0.,
 		0.,aspectRatio,0.,0.,
-		0.,0.,(f+n) / (n - f),2*f * n / (n - f),
+		0.,0.,(f + n) / (n - f),2 * f * n / (n - f),
 		0.,0.,-1.,0.,
 		});
 
-	
-	perspectiveMatrix=glm::transpose(perspectiveMatrix);
+
+	perspectiveMatrix = glm::transpose(perspectiveMatrix);
 
 	return perspectiveMatrix;
 }
 
 void drawObjectUI(Core::RenderContext& context, glm::mat4 modelMatrix, GLuint texture) {
-	glUseProgram(UIprogram);
 	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
 	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(UIprogram, "transformation"), 1, GL_FALSE, (float*)&transformation);
@@ -299,10 +299,10 @@ void drawObjectNoTexturesPBR(Core::RenderContext& context, glm::mat4 modelMatrix
 
 }
 
-void drawObjectPBRIsland(Core::RenderContext& context, glm::mat4 modelMatrix, 
-															GLuint texture = texture::defaultTexture, 
-															GLuint textureNormal = texture::defaultTextureNormal, 
-															GLuint textureArm = texture::defaultTextureArm)
+void drawObjectPBRIsland(Core::RenderContext& context, glm::mat4 modelMatrix,
+	GLuint texture = texture::defaultTexture,
+	GLuint textureNormal = texture::defaultTextureNormal,
+	GLuint textureArm = texture::defaultTextureArm)
 {
 
 	glActiveTexture(GL_TEXTURE0);
@@ -466,7 +466,7 @@ void createSkybox()
 	glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
 }
 
-void renderSkybox() 
+void renderSkybox()
 {
 	glm::mat4 projectionMatrix = createPerspectiveMatrix();
 	glm::mat4 viewMatrix = createCameraMatrix();
@@ -682,7 +682,7 @@ void initializePlanetData() {
 	float time = glfwGetTime();
 	planets.push_back(Planet("earth", glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(5.f, 0, 5.f)) * glm::scale(glm::vec3(0.3f)), planet_pbr::mercuryTex, 1000, 10));
 	planets.push_back(Planet("venus", glm::eulerAngleY(time / 10) * glm::translate(glm::vec3(8.f, 0, 8.f)) * glm::scale(glm::vec3(0.25f)), planet_pbr::earthTex, 10000, 100));
-	planets.push_back(Planet("mars", glm::eulerAngleY(time / 3/2) * glm::translate(glm::vec3(3.f, 0, 3.f)) * glm::scale(glm::vec3(0.25f)), planet_pbr::mercuryTex, 2000, 2));
+	planets.push_back(Planet("mars", glm::eulerAngleY(time / 3 / 2) * glm::translate(glm::vec3(3.f, 0, 3.f)) * glm::scale(glm::vec3(0.25f)), planet_pbr::mercuryTex, 2000, 2));
 
 	for (int i = 0; i < 3; ++i) {
 		asteroids.push_back(Asteroid());
@@ -750,7 +750,7 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	float time = glfwGetTime();
 	updateDeltaTime(time);
 	renderSkybox();
-	
+
 	//space lamp
 	glUseProgram(programSun);
 	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
@@ -762,7 +762,7 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 
 	//planety ukladu
 	glUseProgram(program);
-	
+
 
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
@@ -778,7 +778,6 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 		planet_pbr::mercuryTex
 	);
 
-	glUseProgram(0);
 
 	glUseProgram(program);
 
@@ -789,22 +788,23 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	// rysowanie i zbieranie z planet
 	makeLogicOnSpace(window);
 
-	// serca oraz statkiem
 
-	glUseProgram(UIprogram);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
 	//monety and planets
-	float magic_width_size_factor = 4.0f;
-	float coin_size = 0.35f;
-	float coin_width = coin_size * magic_width_size_factor;
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glUseProgram(program);
+
+	float magic_width_size_factor_coin = 4.0f * 1.75f;
+	float coin_size = 0.25f;
+	float coin_width = coin_size * magic_width_size_factor_coin;
 	for (Planet& planet : planets) {
 		planet.moneyToCollect = 1000;
 		int numberOfCoinsOnPlanet = 5 * static_cast<float>(planet.moneyToCollect) / planet.maxMoney;
 
+		numberOfCoinsOnPlanet = 2; //!WARNING: temporary health setting
 		float padding = 0;
 		if (numberOfCoinsOnPlanet % 2 == 0) {
 			padding += coin_width / 2.f;
@@ -813,16 +813,31 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 
 		for (int i = 0; i < numberOfCoinsOnPlanet; ++i) {
 			glm::vec3 translationVector(padding + coin_width * i, 2.5f, 0.0f);
+			glm::vec3 centerAxes = glm::vec3(0.0f, -2.f, 0.0f);
 			auto directionMatrix = createBillboardMatrix(planet.position + translationVector, cameraDir);
-			drawObjectUI(models::planeUiContext,
-				planet.modelMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(coin_size)),
-				UI_Plate::oneCoin);
+			drawObjectPBR(
+				models::lego,
+				planet.modelMatrix 
+					* glm::translate(translationVector) 
+					* glm::scale(glm::vec3(coin_size))
+					* glm::translate(-centerAxes)
+					* glm::eulerAngleXZ( 
+						glm::pi<float>() / 2.f,
+						time * glm::pi<float>() / 2.f)
+				    * glm::translate(centerAxes),
+				planet.textureID);
 		}
 	}
+	glUseProgram(0);
 
-	health = 5; //WARNING: temporary health setting
+
+
+	// serca
+	float magic_width_size_factor_heart = 4.0f;
+	glUseProgram(UIprogram);
+	health = 5; //!WARNING: temporary health setting
 	float hp_size = 0.04f;
-	float hp_width = hp_size * magic_width_size_factor;
+	float hp_width = hp_size * magic_width_size_factor_heart;
 	for (int i = 0; i < health; ++i) {
 		float padding = 0;
 		if (int(health) % 2 == 0) {
@@ -846,9 +861,9 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 	float time = glfwGetTime();
 	updateDeltaTime(time);
 	renderShadowmapSun();
-	renderSkybox();	
+	renderSkybox();
 
-	
+
 	glUseProgram(programIsland);
 	/*drawObjectNoTexturesPBR(models::lanternContext,
 		islandPos::lanternPos,
@@ -871,7 +886,7 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 		0.3f, 0.4f);*/
 	glUseProgram(0);
 
-	
+
 
 
 
@@ -924,7 +939,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void loadModelToContext(std::string path, Core::RenderContext& context)
 {
 	Assimp::Importer import;
-	const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
+	const aiScene * scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -969,7 +984,9 @@ void init(GLFWwindow* window)
 	loadModelToContext("./models/metal.obj", models::metalContext);
 
 	loadModelToContext("./models/plane.obj", models::planeUiContext);
-	
+
+	loadModelToContext("./models/stud.obj", models::lego);
+
 	planet_pbr::mercuryTex.albedo = Core::LoadTexture("textures/mercury_diffuseOriginal.bmp");
 	planet_pbr::mercuryTex.normal = Core::LoadTexture("textures/mercury_normal.bmp");
 	planet_pbr::mercuryTex.roughness = Core::LoadTexture("textures/mercury_metallic.bmp");
@@ -991,7 +1008,7 @@ void init(GLFWwindow* window)
 	texture::snowTextureNormal = Core::LoadTexture("textures/snow/snow_normal.jpg");
 	texture::snowTextureArm = Core::LoadTexture("textures/snow/snow_arm.jpg");
 
-	planet_pbr::defaultTex.normal=Core::LoadTexture("textures/default/default.png");
+	planet_pbr::defaultTex.normal = Core::LoadTexture("textures/default/default.png");
 	planet_pbr::defaultTex.albedo = Core::LoadTexture("textures/default/default_arm.png");
 
 	createSkybox();
@@ -1006,7 +1023,7 @@ void shutdown(GLFWwindow* window)
 //obsluga wejscia
 void processInput(GLFWwindow* window)
 {
-	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f,1.f,0.f)));
+	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::vec3(0.f, 1.f, 0.f);
 	float angleSpeed = 0.05f * deltaTime * 60;
 	float moveSpeed = 0.5f * deltaTime * 60;
@@ -1047,7 +1064,7 @@ void processInput(GLFWwindow* window)
 		printf("spotlightConeDir = glm::vec3(%ff, %ff, %ff);\n", spotlightConeDir.x, spotlightConeDir.y, spotlightConeDir.z);
 
 	}
-	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) 
+	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
 	{
 		isIsland = 0;
 		spaceshipPos = glm::vec3(2, 1, 0);
@@ -1067,7 +1084,7 @@ void renderLoop(GLFWwindow* window) {
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
-		if (isIsland == 0) 
+		if (isIsland == 0)
 		{
 			sunPos = glm::vec3(0, 0, 0);
 			sunDir = glm::vec3(-10.93633f, 0.351106, 0.003226f);
@@ -1079,10 +1096,10 @@ void renderLoop(GLFWwindow* window) {
 			renderSceneSpace(window);
 
 		}
-		else 
+		else
 		{
 			pointlightPos = glm::vec3(0, 20, 0);
-			pointlightColor = glm::vec3(0.9, 0.6, 0.6)*5;
+			pointlightColor = glm::vec3(0.9, 0.6, 0.6) * 5;
 
 
 			sunPos = glm::vec3(-4.740971f, 2.149999f, 0.369280f);
