@@ -160,6 +160,10 @@ float health = 10;
 float lastResetedAsteroidTime = glfwGetTime();
 float lastSpawnedAsteroidTime = glfwGetTime();
 float lastTryMetalSpawnTime = glfwGetTime();
+float enterRingTime = glfwGetTime();
+bool enteredRing = false;
+
+
 
 glm::vec3 lightColor = glm::vec3(0.9, 0.7, 0.8) * 100;
 
@@ -714,6 +718,63 @@ void makeLogicOnSpace(GLFWwindow* window) {
 
 }
 
+void checkIfEnteredPortal(GLFWwindow* window) {
+	glm::vec3 ringCenter = islandPos::portalPos[3];
+	float ringRadius = 2.f;
+
+	float ringThickness = 0.5f;
+
+	glm::vec2 spaceshipPos2D(spaceshipPos.x, spaceshipPos.y);
+	glm::vec2 ringCenter2D(ringCenter.x, ringCenter.y);
+
+	float distanceToRingCenter2D = glm::length(spaceshipPos2D - ringCenter2D);
+
+
+	if (distanceToRingCenter2D < ringRadius &&
+		spaceshipPos.z > ringCenter.z - ringThickness / 2 &&
+		spaceshipPos.z < ringCenter.z + ringThickness / 2) {
+
+		constexpr float transitionDuration = 0.5f;
+		constexpr float transitionSteps = 60;
+		GLfloat black[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		GLfloat originalColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+		if (!enteredRing) {
+			enterRingTime = glfwGetTime();
+			enteredRing = true;
+			printf("enterRingTime: %f\n", enterRingTime);
+		}
+		float currentTime = glfwGetTime();
+		printf("currentTime: %f, enterRingTime: %f\n", currentTime, enterRingTime);
+		float elapsedTime = currentTime - enterRingTime;
+		printf("elapsedTime: %f (%f - %f), (<=) transitionDuration: %f\n", elapsedTime, enterRingTime, currentTime, transitionDuration);
+		if (elapsedTime <= transitionDuration) {
+			float t = elapsedTime / transitionDuration;
+			int steps = static_cast<int>(t * transitionSteps);
+			t = static_cast<float>(steps) / transitionSteps;
+			GLfloat currentColor[4];
+			for (int i = 0; i < 4; ++i) {
+				currentColor[i] = originalColor[i] * (1.0f - t) + black[i] * t;
+				glfwWaitEventsTimeout(0.1f);
+				printf("color changing\n");
+				glColor4fv(currentColor);
+			}
+			glColor4fv(currentColor);
+			printf("color changed\n");
+		}
+		else {
+			// After transition, set to black
+			glColor4fv(black);
+		}
+
+		isIsland = 0;
+		glm::vec3 earthPos = extractPosition("earth", objectData);
+		glm::vec3 translationVec(2, 1, 1);
+		spaceshipPos = earthPos + translationVec;
+		spaceshipDir = glm::normalize(-spaceshipPos);
+	}
+}
+
 void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -828,6 +889,7 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 
 	spotlightPos = spaceshipPos + 0.2 * spaceshipDir;
 	spotlightConeDir = spaceshipDir;
+	checkIfEnteredPortal(window);
 
 	glUseProgram(0);
 	glfwSwapBuffers(window);
@@ -995,21 +1057,23 @@ void processInput(GLFWwindow* window)
 		exposition += 0.05;
 
 	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-		printf("spaceshipPos = glm::vec3(%ff, %ff, %ff);\n", spaceshipPos.x, spaceshipPos.y, spaceshipPos.z);
-		printf("spaceshipDir = glm::vec3(%ff, %ff, %ff);\n", spaceshipDir.x, spaceshipDir.y, spaceshipDir.z);
-		printf("spotlightConeDir = glm::vec3(%ff, %ff, %ff);\n", spotlightConeDir.x, spotlightConeDir.y, spotlightConeDir.z);
-
+		printf("spaceshipPos = glm::vec3(%f, %f, %f);\n", spaceshipPos.x, spaceshipPos.y, spaceshipPos.z);
 	}
+
 	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) 
 	{
 		isIsland = 0;
-		spaceshipPos = glm::vec3(2, 1, 0);
+		glm::vec3 earthPos = extractPosition("earth", objectData);
+		glm::vec3 translationVec(2, 1, 1);
+		spaceshipPos = earthPos + translationVec;
+		spaceshipDir = glm::normalize(-spaceshipPos);
 	}
 	if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
 	{
 		//lecimy na planete, zmieniamy zmienna w celu uzycie 2nd render scene
 		isIsland = 1;
 		spaceshipPos = glm::vec3(3, 2, 3);
+		enteredRing = false;
 	}
 
 	//cameraDir = glm::normalize(-cameraPos);
