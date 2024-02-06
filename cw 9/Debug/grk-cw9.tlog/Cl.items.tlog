@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\src\Box.cpp;C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\Debug\Box.obj
 C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\src\Camera.cpp;C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\Debug\Camera.obj
 C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\src\main.cpp;C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\Debug\main.obj
@@ -8,3 +9,15 @@ C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\src\SOIL\image_helper.
 C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\src\SOIL\SOIL.c;C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\Debug\SOIL.obj
 C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\src\SOIL\stb_image_aug.c;C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\Debug\stb_image_aug.obj
 C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\src\Texture.cpp;C:\Users\jakub\source\repos\Computer_Graphic_Project\cw 9\Debug\Texture.obj
+=======
+E:\Projket_Grafika\C_G_P_3\cw 9\src\Box.cpp;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\Box.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\Camera.cpp;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\Camera.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\main.cpp;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\main.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\Render_Utils.cpp;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\Render_Utils.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\Shader_Loader.cpp;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\Shader_Loader.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\SOIL\image_DXT.c;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\image_DXT.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\SOIL\image_helper.c;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\image_helper.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\SOIL\SOIL.c;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\SOIL.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\SOIL\stb_image_aug.c;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\stb_image_aug.obj
+E:\Projket_Grafika\C_G_P_3\cw 9\src\Texture.cpp;E:\Projket_Grafika\C_G_P_3\cw 9\Debug\Texture.obj
+>>>>>>> d22f82c947423bc44412865f52abdacb89234700
