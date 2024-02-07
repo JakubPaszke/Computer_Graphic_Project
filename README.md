@@ -16,12 +16,18 @@ As you amass your fortune in gleaming gold, the universe unfolds before you, pre
  - 6 - landing on planet
  - 1,2 - adjusting lightning
 
+## Computer Graphics elements:
+- PBR with texturing
+- PBR without textures
+- Shadowmapping 
+- High resolution textures
+- High quality models
+- Dynamic lighting
+- Random surface generation
+
 ## Authors
 
 - [@Jakub Paszke](https://github.com/JakubPaszke)
 - [@Miłosz Rolewski](https://github.com/milosz-amg)
 - [@Mateusz Dokowicz](https://github.com/mdokusV)
-
-
-
 
