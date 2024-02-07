@@ -864,6 +864,26 @@ void checkIfEnteredPortal(GLFWwindow* window) {
 	}
 }
 
+glm::mat4 createBillboardMatrix(glm::vec3 billboardPosition, glm::vec3 cameraPosition) {
+	// Calculate the direction from the billboard to the camera
+	glm::vec3 forward = glm::normalize(cameraPosition - billboardPosition);
+
+	// Set the up vector to restrict rotation to side-to-side (assuming Y is the up direction)
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+	// Calculate the right vector
+	glm::vec3 right = glm::cross(up, forward);
+
+	// Recalculate the up vector to ensure it is perpendicular to both forward and right
+	up = glm::cross(forward, right);
+
+	// Create the view matrix with the calculated orientation
+	glm::mat4 viewMatrix = glm::lookAt(billboardPosition, billboardPosition + forward, up);
+
+	// Invert the view matrix to get the billboard matrix
+	return glm::inverse(viewMatrix);
+}
+
 void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
