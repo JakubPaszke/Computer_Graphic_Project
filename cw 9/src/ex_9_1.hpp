@@ -526,7 +526,7 @@ public:
 		position = extractPosition(name, objectData);
 		float distanceToPlayer = calculateDistance(spaceshipPos, position);
 		const float collectionRadius = 1.0f;
-		const float moneyToCollect = glm::min((time - timeDelta) / 100, maxMoney);
+		moneyToCollect = glm::min((time - timeDelta) * 10, maxMoney);
 
 		//printf("Name: %s \n distance to player: %f\n spaceshipPos: %f %f %f\n position: %f %f %f\n", name.c_str(), distanceToPlayer, spaceshipPos.x, spaceshipPos.y, spaceshipPos.z, extractPosition(name, objectData).x, extractPosition(name, objectData).y, extractPosition(name, objectData).z);
 
@@ -801,7 +801,6 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	float coin_size = 0.25f;
 	float coin_width = coin_size * magic_width_size_factor_coin;
 	for (Planet& planet : planets) {
-		planet.moneyToCollect = 1000;
 		int numberOfCoinsOnPlanet = 5 * static_cast<float>(planet.moneyToCollect) / planet.maxMoney;
 
 		numberOfCoinsOnPlanet = 2; //!WARNING: temporary health setting
@@ -825,7 +824,7 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 						glm::pi<float>() / 2.f,
 						time * glm::pi<float>() / 2.f)
 				    * glm::translate(centerAxes),
-				planet.textureID);
+				planet_pbr::mercuryTex);
 		}
 	}
 	glUseProgram(0);
@@ -835,7 +834,7 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	// serca
 	float magic_width_size_factor_heart = 4.0f;
 	glUseProgram(UIprogram);
-	health = 5; //!WARNING: temporary health setting
+	health = 10; //!WARNING: temporary health setting
 	float hp_size = 0.04f;
 	float hp_width = hp_size * magic_width_size_factor_heart;
 	for (int i = 0; i < health; ++i) {
