@@ -80,6 +80,16 @@ namespace texture {
 	GLuint earthNormal;
 	GLuint asteroidNormal;
 	GLuint shipNormal;
+	GLuint number0;
+	GLuint number1;
+	GLuint number2;
+	GLuint number3;
+	GLuint number4;
+	GLuint number5;
+	GLuint number6;
+	GLuint number7;
+	GLuint number8;
+	GLuint number9;
 }
 
 namespace islandPos {
@@ -676,7 +686,7 @@ public:
 		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
 		textureID = planet_pbr::asteroidTex;
 		direction = glm::normalize(spaceshipPos - position);
-		speed = 0.03f * deltaTime * 60;
+		speed = 0.003f;
 		timeSpawned = glfwGetTime();
 	}
 
@@ -724,7 +734,7 @@ public:
 		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
 		textureID = planet_pbr::mercuryTex;
 		direction = glm::normalize(-position);
-		speed = 0.002f * deltaTime * 60;
+		speed = 0.002f;
 	}
 
 	void draw() {
@@ -844,7 +854,6 @@ void checkIfEnteredPortal(GLFWwindow* window) {
 			GLfloat currentColor[4];
 			for (int i = 0; i < 4; ++i) {
 				currentColor[i] = originalColor[i] * (1.0f - t) + black[i] * t;
-				glfwWaitEventsTimeout(0.1f);
 				printf("color changing\n");
 				glColor4fv(currentColor);
 			}
@@ -883,6 +892,48 @@ glm::mat4 createBillboardMatrix(glm::vec3 billboardPosition, glm::vec3 cameraPos
 	// Invert the view matrix to get the billboard matrix
 	return glm::inverse(viewMatrix);
 }
+
+void renderTotalMoney(glm::mat4 specshipCameraRotrationMatrix, glm::vec3 position) {
+	GLuint textureNames[10] = {
+		texture::number0, texture::number1, texture::number2,texture::number3,texture::number4,texture::number5,texture::number6,texture::number7,texture::number8,texture::number9,
+	};
+
+	glUseProgram(UIprogram);
+
+	float digitWidth = 0.04f;
+
+	int numDigits = 0;
+	int tempMoney = totalMoney;
+	do {
+		numDigits++;
+		tempMoney /= 10;
+	} while (tempMoney > 0);
+
+	// Calculate the total width of the money display
+	float totalWidth = digitWidth * numDigits;
+
+
+	position.x -= totalWidth;
+	position.y = 1.0f - (0.04f*2); 
+
+	tempMoney = totalMoney;
+	while (tempMoney > 0) {
+		int digit = tempMoney % 10;
+		tempMoney /= 10;
+
+		glm::vec3 translationVector(position.x + totalWidth, position.y, position.z);
+
+
+		// Render the digit
+		drawObjectUI(models::planeUiContext,
+			glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(digitWidth)),
+			textureNames[digit]);
+
+		// Update position for the next digit
+		position.x -= digitWidth*3;
+	}
+}
+
 
 void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 {
@@ -944,7 +995,6 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	for (Planet& planet : planets) {
 		int numberOfCoinsOnPlanet = 5 * static_cast<float>(planet.moneyToCollect) / planet.maxMoney;
 
-		numberOfCoinsOnPlanet = 2; //!WARNING: temporary health setting
 		float padding = 0;
 		if (numberOfCoinsOnPlanet % 2 == 0) {
 			padding += coin_width / 2.f;
@@ -975,7 +1025,6 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	// serca
 	float magic_width_size_factor_heart = 4.0f;
 	glUseProgram(UIprogram);
-	health = 10; //!WARNING: temporary health setting
 	float hp_size = 0.04f;
 	float hp_width = hp_size * magic_width_size_factor_heart;
 	for (int i = 0; i < health; ++i) {
@@ -990,6 +1039,8 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 			glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::translate(translationVector) * glm::eulerAngleX(glm::pi<float>() / 2.f) * glm::scale(glm::vec3(hp_size)),
 			UI_Plate::oneHeart);
 	}
+	glm::vec3 moneyPos = glm::vec3(1.2f, 0.9f, 0.0f);
+	renderTotalMoney(specshipCameraRotrationMatrix, moneyPos);
 
 	glUseProgram(0);
 	glfwSwapBuffers(window);
@@ -1198,6 +1249,18 @@ void init(GLFWwindow* window)
 	texture::rockTextureNormal = Core::LoadTexture("textures/rock/rock_norm.jpg");
 	texture::rockTextureArm = Core::LoadTexture("textures/rock/rock_arm.jpg");
 
+	texture::number0 = Core::LoadTexture("textures/numbers/0.png");
+	texture::number1 = Core::LoadTexture("textures/numbers/1.png");
+	texture::number2 = Core::LoadTexture("textures/numbers/2.png");
+	texture::number3 = Core::LoadTexture("textures/numbers/3.png");
+	texture::number4 = Core::LoadTexture("textures/numbers/4.png");
+	texture::number5 = Core::LoadTexture("textures/numbers/5.png");
+	texture::number6 = Core::LoadTexture("textures/numbers/6.png");
+	texture::number7 = Core::LoadTexture("textures/numbers/7.png");
+	texture::number8 = Core::LoadTexture("textures/numbers/8.png");
+	texture::number9 = Core::LoadTexture("textures/numbers/9.png");
+
+
 
 	planet_pbr::defaultTex.normal = Core::LoadTexture("textures/default/default.png");
 	planet_pbr::defaultTex.albedo = Core::LoadTexture("textures/default/default_arm.png");
@@ -1217,8 +1280,8 @@ void processInput(GLFWwindow* window)
 {
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::vec3(0.f, 1.f, 0.f);
-	float angleSpeed = 0.05f * deltaTime * 60;
-	float moveSpeed = 0.05f * deltaTime * 60;
+	float angleSpeed = 0.05f;
+	float moveSpeed = 0.05f;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
@@ -1262,14 +1325,14 @@ void processInput(GLFWwindow* window)
 		spaceshipPos = earthPos + translationVec;
 		spaceshipDir = glm::normalize(-spaceshipPos);
 	}
-	if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+	if ((glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) && (calculateDistance(spaceshipPos, extractPosition("earth", objectData)) < 3.0f))
 	{
 		//lecimy na planete, zmieniamy zmienna w celu uzycie 2nd render scene
 		isIsland = 1;
 		spaceshipPos = glm::vec3(3, 2, 3);
 		enteredRing = false;
 		genRockPos();
-		spaceshipPos = glm::vec3(-56.656471f, 15.840942f, -15.325633f);
+		spaceshipPos = glm::vec3(-15.373457, 13.11606, 7.78564);
 		spaceshipDir = glm::vec3(0.963862f, 0.000000f, 0.266432f);
 
 	}
