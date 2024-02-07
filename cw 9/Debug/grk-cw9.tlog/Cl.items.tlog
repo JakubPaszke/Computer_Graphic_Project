@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\src\Box.cpp;C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\Debug\Box.obj
 C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\src\Camera.cpp;C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\Debug\Camera.obj
 C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\src\main.cpp;C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\Debug\main.obj
@@ -8,3 +9,15 @@ C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\src\SOIL\image_he
 C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\src\SOIL\SOIL.c;C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\Debug\SOIL.obj
 C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\src\SOIL\stb_image_aug.c;C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\Debug\stb_image_aug.obj
 C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\src\Texture.cpp;C:\Users\milosz\source\repos\Computer_Graphic_Project_666\cw 9\Debug\Texture.obj
+=======
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\Box.cpp;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\Box.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\Camera.cpp;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\Camera.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\main.cpp;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\main.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\Render_Utils.cpp;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\Render_Utils.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\Shader_Loader.cpp;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\Shader_Loader.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\SOIL\image_DXT.c;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\image_DXT.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\SOIL\image_helper.c;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\image_helper.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\SOIL\SOIL.c;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\SOIL.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\SOIL\stb_image_aug.c;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\stb_image_aug.obj
+C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\src\Texture.cpp;C:\Users\Mateusz\source\repos\Computer_Graphic_Project\cw 9\Debug\Texture.obj
+>>>>>>> UI

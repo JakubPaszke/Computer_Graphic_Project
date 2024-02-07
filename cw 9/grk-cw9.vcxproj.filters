@@ -148,5 +148,15 @@
     <None Include="shaders\shader_blur.vert">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\UI.frag" />
+    <None Include="shaders\UI.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\Downloads\oneHealf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\..\..\Downloads\oneCoin.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
