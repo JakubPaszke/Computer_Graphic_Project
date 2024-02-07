@@ -58,10 +58,6 @@ namespace texture {
 	GLuint rockTextureNormal;
 	GLuint rockTextureArm;
 
-	GLuint waterTexture;
-	GLuint waterTextureNormal;
-	GLuint waterTextureArm;
-
 	GLuint earth;
 	GLuint clouds;
 	GLuint moon;
@@ -106,6 +102,7 @@ namespace planet_pbr {
 	PlanetTextures asteroidTex;
 
 	PlanetTextures defaultTex;
+	PlanetTextures waterTex;
 }
 
 
@@ -908,15 +905,11 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 		glm::vec3(0.1f, 0.9f, 0.5f),
 		0.2f, 0.8f);
 
-	drawObjectNoTexturesPBR(models::waterContext,
+	/*drawObjectNoTexturesPBR(models::waterContext,
 		islandPos::waterPos,
 		glm::vec3(0.05, 0.86, 0.89),
-		0.3f, 0.4f);
+		0.3f, 0.4f);*/
 	glUseProgram(0);
-
-	
-
-
 
 
 	//poprawic
@@ -926,9 +919,11 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 	pointlightPos = sunPos;
 
 	glUseProgram(programTest);
-	//drawObjectPBRIsland(models::waterContext, islandPos::waterPos, texture::defaultTexture, texture::defaultTextureNormal, texture::defaultTextureArm);
-	drawObjectPBRIsland(models::lanternContext, islandPos::lanternPos, texture::snowTexture, texture::snowTextureNormal, texture::snowTextureArm);
-	//drawObjectPBRIsland(models::groundContext, islandPos::groundPos, texture::snowTexture, texture::snowTextureNormal, texture::snowTextureArm);
+
+	drawObjectPBRIsland(models::lanternContext, islandPos::lanternPos);
+
+	drawObjectPBRIsland(models::waterContext, islandPos::waterPos, texture::snowTexture, texture::snowTextureNormal, texture::snowTextureArm);
+
 	for (int i = 0; i < 40; i++) {
 		drawObjectPBRIsland(models::asteroidContext, islandPos::rockPos[i], texture::rockTexture, texture::rockTextureNormal, texture::rockTextureArm);
 	}
@@ -936,6 +931,7 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 
 
 	glUseProgram(program);
+
 
 
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
@@ -1061,11 +1057,16 @@ void init(GLFWwindow* window)
 	planet_pbr::sunTex.roughness = Core::LoadTexture("textures/sun_metallic.bmp");
 	planet_pbr::sunTex.metallic = Core::LoadTexture("textures/sun_smoothness.bmp");
 
+	planet_pbr::waterTex.albedo = Core::LoadTexture("textures/water/snow_ao.png");
+	planet_pbr::waterTex.normal = Core::LoadTexture("textures/water/snow_norm.png");
+	planet_pbr::waterTex.roughness = Core::LoadTexture("textures/water/snow_rough.png");
+	planet_pbr::waterTex.metallic= Core::LoadTexture("textures/water/snow_metalic.png");
 
 
-	texture::defaultTexture = Core::LoadTexture("textures/default/default.png");
-	texture::defaultTextureNormal = Core::LoadTexture("textures/default/default_normalmap.png");
-	texture::defaultTextureArm = Core::LoadTexture("textures/default/default_arm.png");
+
+	texture::defaultTexture = Core::LoadTexture("textures/default/default.jpg");
+	texture::defaultTextureNormal = Core::LoadTexture("textures/default/default_normal.jpg");
+	texture::defaultTextureArm = Core::LoadTexture("textures/default/default_arm.jpg");
 
 	texture::snowTexture = Core::LoadTexture("textures/snow/snow_diff.jpg");
 	texture::snowTextureNormal = Core::LoadTexture("textures/snow/snow_normal.jpg");
@@ -1074,6 +1075,7 @@ void init(GLFWwindow* window)
 	texture::rockTexture = Core::LoadTexture("textures/rock/rock_diff.jpg");
 	texture::rockTextureNormal = Core::LoadTexture("textures/rock/rock_norm.jpg");
 	texture::rockTextureArm = Core::LoadTexture("textures/rock/rock_arm.jpg");
+
 
 	planet_pbr::defaultTex.normal=Core::LoadTexture("textures/default/default.png");
 	planet_pbr::defaultTex.albedo = Core::LoadTexture("textures/default/default_arm.png");
