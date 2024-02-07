@@ -19,6 +19,8 @@
 #include "SOIL/stb_image_aug.h"
 #include "SOIL/stb_image_aug.h"
 
+#include <random>
+
 const unsigned int SHADOW_WIDTH = 4024, SHADOW_HEIGHT = 4024;
 
 int WIDTH = 500, HEIGHT = 500;
@@ -52,6 +54,14 @@ namespace texture {
 	GLuint snowTextureNormal;
 	GLuint snowTextureArm;
 
+	GLuint rockTexture;
+	GLuint rockTextureNormal;
+	GLuint rockTextureArm;
+
+	GLuint waterTexture;
+	GLuint waterTextureNormal;
+	GLuint waterTextureArm;
+
 	GLuint earth;
 	GLuint clouds;
 	GLuint moon;
@@ -68,11 +78,11 @@ namespace texture {
 }
 
 namespace islandPos {
-	glm::mat4 lanternPos = glm::mat4() * glm::translate(glm::vec3(-5.73019, 1.0, 0.350166)) * glm::scale(glm::vec3(0.03));
-	//glm::mat4 lanternPos = glm::mat4() * glm::translate(glm::vec3(-3.73019, 1.0, -27.350166)) * glm::scale(glm::vec3(0.03));
-	glm::mat4 groundPos = glm::mat4() * glm::translate(glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::vec3(0.006));
-	glm::mat4 portalPos = glm::mat4() * glm::translate(glm::vec3(0.373457, 5.11606, 3.78564)) * glm::scale(glm::vec3(0.3)) * glm::rotate(glm::mat4(1.0f), glm::radians(130.0f), glm::vec3(0.0f, 1.0f, 0.0f)) ;
-	glm::mat4 waterPos = glm::mat4()* glm::translate(glm::vec3(20.0f, -6.0f, 20.0f))* glm::scale(glm::vec3(0.7));;
+	glm::mat4 lanternPos = glm::mat4() * glm::translate(glm::vec3(-2.35, 3.5, -6.350166)) * glm::scale(glm::vec3(0.1));
+	glm::mat4 groundPos = glm::mat4() * glm::translate(glm::vec3(0.3f, -1.5f, 0.0f)) * glm::scale(glm::vec3(0.5)) * glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 portalPos = glm::mat4() * glm::translate(glm::vec3(-10.373457, 7.11606, 7.78564)) * glm::scale(glm::vec3(0.3)) * glm::rotate(glm::mat4(1.0f), glm::radians(130.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 waterPos = glm::mat4() * glm::translate(glm::vec3(100.0f, 0.0f, 100.0f)) * glm::scale(glm::vec3(2.0));
+	glm::mat4 rockPos[40];
 }
 
 
@@ -167,7 +177,63 @@ bool enteredRing = false;
 
 glm::vec3 lightColor = glm::vec3(0.9, 0.7, 0.8) * 100;
 
+void genRockPos() {
+	glm::vec3 tmpRockPos;
+	// Seed for random number generation
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<float> dis_y(-2.0f, 5.0f);
+	std::uniform_real_distribution<float> size(0.005f, 0.017f);
+
+	std::uniform_real_distribution<float> dis_x(-400.0f, -25.0f);
+	std::uniform_real_distribution<float> dis_z(-400.0f, 400.0f);
+	for (int i = 0; i < 15; i++) {
+
+		float x = dis_x(gen);
+		float y = dis_y(gen);
+		float z = dis_z(gen);
+		float scale = size(gen);
+		tmpRockPos = glm::vec3(x, y, z);
+		islandPos::rockPos[i] = glm::mat4() * glm::translate(tmpRockPos) * glm::scale(glm::vec3(scale));
+	}
+
+	std::uniform_real_distribution<float> dis_x1(25.0f, 400.0f);
+	std::uniform_real_distribution<float> dis_z1(-400.0f, 400.0f);
+	for (int i = 15; i < 30; i++) {
+
+		float x = dis_x1(gen);
+		float y = dis_y(gen);
+		float z = dis_z1(gen);
+		float scale = size(gen);
+		tmpRockPos = glm::vec3(x, y, z);
+		islandPos::rockPos[i] = glm::mat4() * glm::translate(tmpRockPos) * glm::scale(glm::vec3(scale));
+	}
+
+	std::uniform_real_distribution<float> dis_x2(-25.0f, 25.0f);
+	std::uniform_real_distribution<float> dis_z2(25.0f, 400.0f);
+	for (int i = 30; i < 35; i++) {
+
+		float x = dis_x2(gen);
+		float y = dis_y(gen);
+		float z = dis_z2(gen);
+		float scale = size(gen);
+		tmpRockPos = glm::vec3(x, y, z);
+		islandPos::rockPos[i] = glm::mat4() * glm::translate(tmpRockPos) * glm::scale(glm::vec3(scale));
+	}
+
+	std::uniform_real_distribution<float> dis_x3(-25.0f, 25.0f);
+	std::uniform_real_distribution<float> dis_z3(-400.0f, -25.0f);
+	for (int i = 35; i < 40; i++) {
+
+		float x = dis_x3(gen);
+		float y = dis_y(gen);
+		float z = dis_z3(gen);
+		float scale = size(gen);
+		tmpRockPos = glm::vec3(x, y, z);
+		islandPos::rockPos[i] = glm::mat4() * glm::translate(tmpRockPos) * glm::scale(glm::vec3(scale));
+	}
+}
 
 void updateDeltaTime(float time) {
 	if (lastTime < 0) {
@@ -830,25 +896,22 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 
 	
 	glUseProgram(programIsland);
-	/*drawObjectNoTexturesPBR(models::lanternContext,
-		islandPos::lanternPos,
-		glm::vec3(0.3f, 0.9f, 0.9f),
-		0.5f, 0.3f);*/
 
 	drawObjectNoTexturesPBR(models::groundContext,
 		islandPos::groundPos,
 		glm::vec3(0.9f, 0.9f, 0.9f),
 		0.8f, 0.0f);
 
+
 	drawObjectNoTexturesPBR(models::portalContext,
 		islandPos::portalPos,
 		glm::vec3(0.1f, 0.9f, 0.5f),
 		0.2f, 0.8f);
 
-	/*drawObjectNoTexturesPBR(models::waterContext,
+	drawObjectNoTexturesPBR(models::waterContext,
 		islandPos::waterPos,
-		glm::vec3(0.1f, 0.3f, 0.8f),
-		0.3f, 0.4f);*/
+		glm::vec3(0.05, 0.86, 0.89),
+		0.3f, 0.4f);
 	glUseProgram(0);
 
 	
@@ -863,10 +926,12 @@ void renderScenePlanet(GLFWwindow* window)		//renderowanie wyspy
 	pointlightPos = sunPos;
 
 	glUseProgram(programTest);
-	drawObjectPBRIsland(models::waterContext, islandPos::waterPos, texture::defaultTexture, texture::defaultTextureNormal, texture::defaultTextureArm);
+	//drawObjectPBRIsland(models::waterContext, islandPos::waterPos, texture::defaultTexture, texture::defaultTextureNormal, texture::defaultTextureArm);
 	drawObjectPBRIsland(models::lanternContext, islandPos::lanternPos, texture::snowTexture, texture::snowTextureNormal, texture::snowTextureArm);
 	//drawObjectPBRIsland(models::groundContext, islandPos::groundPos, texture::snowTexture, texture::snowTextureNormal, texture::snowTextureArm);
-
+	for (int i = 0; i < 40; i++) {
+		drawObjectPBRIsland(models::asteroidContext, islandPos::rockPos[i], texture::rockTexture, texture::rockTextureNormal, texture::rockTextureArm);
+	}
 	glUseProgram(0);
 
 
@@ -934,9 +999,9 @@ void init(GLFWwindow* window)
 	loadModelToContext("./models/sphere.obj", sphereContext);
 	loadModelToContext("./models/spaceship.obj", shipContext);
 
-	loadModelToContext("./models/ground.obj", models::groundContext);
+	loadModelToContext("./models/water3.obj", models::waterContext);
+	loadModelToContext("./models/wyspa.obj", models::groundContext);
 	loadModelToContext("./models/portal.obj", models::portalContext);
-	loadModelToContext("./models/water.obj", models::waterContext);
 	loadModelToContext("./models/lantern.obj", models::lanternContext);
 
 	loadModelToContext("./models/room.obj", models::roomContext);
@@ -1006,10 +1071,15 @@ void init(GLFWwindow* window)
 	texture::snowTextureNormal = Core::LoadTexture("textures/snow/snow_normal.jpg");
 	texture::snowTextureArm = Core::LoadTexture("textures/snow/snow_arm.jpg");
 
+	texture::rockTexture = Core::LoadTexture("textures/rock/rock_diff.jpg");
+	texture::rockTextureNormal = Core::LoadTexture("textures/rock/rock_norm.jpg");
+	texture::rockTextureArm = Core::LoadTexture("textures/rock/rock_arm.jpg");
+
 	planet_pbr::defaultTex.normal=Core::LoadTexture("textures/default/default.png");
 	planet_pbr::defaultTex.albedo = Core::LoadTexture("textures/default/default_arm.png");
 
 	createSkybox();
+	genRockPos();
 	initDepthMap();
 }
 
@@ -1074,6 +1144,10 @@ void processInput(GLFWwindow* window)
 		isIsland = 1;
 		spaceshipPos = glm::vec3(3, 2, 3);
 		enteredRing = false;
+		genRockPos();
+		spaceshipPos = glm::vec3(-56.656471f, 15.840942f, -15.325633f);
+		spaceshipDir = glm::vec3(0.963862f, 0.000000f, 0.266432f);
+
 	}
 
 	//cameraDir = glm::normalize(-cameraPos);
@@ -1112,7 +1186,7 @@ void renderLoop(GLFWwindow* window) {
 			sunDir = glm::vec3(-0.93633f, 0.351106, 0.003226f);
 			sunColor = glm::vec3(0.9f, 0.9f, 0.7f) * 5;
 
-			lightVP = glm::ortho(-100.f, 100.f, -10.f, 10.f, -10.0f, 100.0f) * glm::lookAt(sunPos, sunPos - sunDir, glm::vec3(0, 1, 0));
+			lightVP = glm::ortho(-100.f, 100.f, -10.f, 10.f, -10.0f, 1000.0f) * glm::lookAt(sunPos, sunPos - sunDir, glm::vec3(0, 1, 0));
 			renderScenePlanet(window);
 		}
 		glfwPollEvents();
