@@ -118,5 +118,45 @@
     <None Include="shaders\shader_skybox.vert">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\shader_depth.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_depth.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_island.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_island.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_2.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_2.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_bloom.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_bloom.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_blur.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_blur.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\UI.frag" />
+    <None Include="shaders\UI.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\Downloads\oneHealf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\..\..\Downloads\oneCoin.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

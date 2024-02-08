@@ -38,6 +38,7 @@ nunit-*.xml
 [Dd]ebugPS/
 [Rr]eleasePS/
 dlldata.c
+Debug/
 
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
@@ -59,6 +60,7 @@ StyleCopReport.xml
 *_h.h
 *.ilk
 *.meta
+*.tlog
 *.iobj
 *.pch
 *.pdb
