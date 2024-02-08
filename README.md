@@ -15,6 +15,8 @@ As you amass your fortune in gleaming gold, the universe unfolds before you, pre
  - C - collecting gold from planet
  - 6 - landing on planet
  - 1,2 - adjusting lightning
+ - P - buing HP on a planet
+ - L - buing speed boost by 5% (also working only on a planet)
 
 ## Computer Graphics elements:
 - PBR with texturing
