@@ -164,7 +164,7 @@ glm::vec3 spaceshipPos = glm::vec3(36.065808f, 1.250000f, -2.189549f);
 glm::vec3 spaceshipDir = glm::vec3(-0.490263f, 0.000000f, 0.871578f);
 GLuint VAO, VBO;
 unsigned int skyboxVAO, skyboxVBO, cubemapTexture, secondCubemapTexture;
-
+float moveSpeed = 0.02f;
 float aspectRatio = 1.f;
 
 float exposition = 1.f;
@@ -620,6 +620,7 @@ public:
 				if (totalMoney > moneyToDelete) {
 					totalMoney -= moneyToDelete;
 					printf("The planet was destroyed. Cost: %f, current money: %f\n", moneyToDelete, totalMoney);
+					moneyToCollect = 0;
 					isDeleted = 1;
 					glfwWaitEventsTimeout(0.1f);
 				}
@@ -686,7 +687,7 @@ public:
 		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.0002f));
 		textureID = planet_pbr::asteroidTex;
 		direction = glm::normalize(spaceshipPos - position);
-		speed = 0.003f;
+		speed = 0.005f;
 		timeSpawned = glfwGetTime();
 	}
 
@@ -703,8 +704,13 @@ public:
 			position = generateRandomPosition();
 			timeSpawned = glfwGetTime();
 			lastResetedAsteroidTime = timeSpawned;
-			health -= 3;
-			printf("COLLISION! HEALTH: %f\n", health);
+			if (health > 0) {
+				health -= 3;
+				printf("COLLISION! HEALTH: %f\n", health);
+				if (health < 0) {
+					health = 0;
+				}
+			}
 		}
 		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.00005f));
 		direction = glm::normalize(spaceshipPos - position);
@@ -734,7 +740,7 @@ public:
 		modelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.002f));
 		textureID = planet_pbr::mercuryTex;
 		direction = glm::normalize(-position);
-		speed = 0.002f;
+		speed = 0.005f;
 	}
 
 	void draw() {
@@ -844,9 +850,8 @@ void checkIfEnteredPortal(GLFWwindow* window) {
 			printf("enterRingTime: %f\n", enterRingTime);
 		}
 		float currentTime = glfwGetTime();
-		printf("currentTime: %f, enterRingTime: %f\n", currentTime, enterRingTime);
 		float elapsedTime = currentTime - enterRingTime;
-		printf("elapsedTime: %f (%f - %f), (<=) transitionDuration: %f\n", elapsedTime, enterRingTime, currentTime, transitionDuration);
+		//printf("elapsedTime: %f (%f - %f), (<=) transitionDuration: %f\n", elapsedTime, enterRingTime, currentTime, transitionDuration);
 		if (elapsedTime <= transitionDuration) {
 			float t = elapsedTime / transitionDuration;
 			int steps = static_cast<int>(t * transitionSteps);
@@ -854,11 +859,11 @@ void checkIfEnteredPortal(GLFWwindow* window) {
 			GLfloat currentColor[4];
 			for (int i = 0; i < 4; ++i) {
 				currentColor[i] = originalColor[i] * (1.0f - t) + black[i] * t;
-				printf("color changing\n");
+				//printf("color changing\n");
 				glColor4fv(currentColor);
 			}
 			glColor4fv(currentColor);
-			printf("color changed\n");
+			//printf("color changed\n");
 		}
 		else {
 			// After transition, set to black
@@ -941,6 +946,7 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	float time = glfwGetTime();
 	updateDeltaTime(time);
 	renderSkybox();
+
 
 	//space lamp
 	glUseProgram(programSun);
@@ -1025,7 +1031,7 @@ void renderSceneSpace(GLFWwindow* window)	//renderowanie kosmosu
 	// serca
 	float magic_width_size_factor_heart = 4.0f;
 	glUseProgram(UIprogram);
-	float hp_size = 0.04f;
+	float hp_size = 0.03f;
 	float hp_width = hp_size * magic_width_size_factor_heart;
 	for (int i = 0; i < health; ++i) {
 		float padding = 0;
@@ -1280,8 +1286,8 @@ void processInput(GLFWwindow* window)
 {
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::vec3(0.f, 1.f, 0.f);
-	float angleSpeed = 0.05f;
-	float moveSpeed = 0.05f;
+	float angleSpeed = 0.02f;
+	
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
@@ -1335,6 +1341,23 @@ void processInput(GLFWwindow* window)
 		spaceshipPos = glm::vec3(-15.373457, 13.11606, 7.78564);
 		spaceshipDir = glm::vec3(0.963862f, 0.000000f, 0.266432f);
 
+	}
+	if ((glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) && (totalMoney > 100.0f) && (health < 10.0f) && (isIsland==1))
+	{
+		
+		health++;
+		totalMoney -= 100;
+		printf("health: %f\n", health);
+		printf("totalMoney: %f\n", totalMoney);
+		glfwWaitEventsTimeout(0.3f);
+	}
+	if ((glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) && (totalMoney > 100.0f) && (isIsland == 1))
+	{
+		moveSpeed = moveSpeed*1.05;
+		totalMoney -= 100;
+		printf("moveSpeed: %f\n", moveSpeed);
+		printf("totalMoney: %f\n", totalMoney);
+		glfwWaitEventsTimeout(0.3f);
 	}
 
 	//cameraDir = glm::normalize(-cameraPos);
